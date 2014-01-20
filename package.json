@@ -1,0 +1,37 @@
+{
+	"name": "hubot-pulsar",
+	"description": "The deploy plugin to use during deploy phase via Pulsar REST API.",
+	"version": "0.0.1",
+	"author": "Cargomedia",
+	"license": "MIT",
+
+	"keywords": [
+		"hubot", "hubot-scripts", "hubot-pulsar", "pulsar"
+	],
+
+	"repository": {
+		"type": "git",
+		"url": "git@github.com:cargomedia/hubot-pulsar.git"
+	},
+
+	"bugs": {
+		"url": "https://github.com/cargomedia/hubot-pulsar/issues"
+	},
+
+	"dependencies": {
+		"coffee-script": "~1.6"
+	},
+
+	"devDependencies": {
+		"mocha": "*",
+		"chai": "*",
+		"sinon-chai": "*",
+		"sinon": "*"
+	},
+
+	"main": "./src/pulsar",
+
+	"scripts": {
+		"test": "script/test"
+	}
+}
