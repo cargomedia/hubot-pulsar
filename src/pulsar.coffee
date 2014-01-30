@@ -6,6 +6,10 @@
 #   hubot deploy <application> <environment> - Deploy application
 
 spawn = require('child_process').spawn
+rest = require('restler')
+_ = require('underscore')
+
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0"
 
 module.exports = (robot) ->
 	robot.respond /deploy ([^\s]+) ([^\s]+)$/i, (msg) ->
@@ -14,32 +18,28 @@ module.exports = (robot) ->
 
 		msg.send "Deploying `#{application}` to `#{environment}`"
 
-		execute msg, 'whoami', null, (output) =>
-			username = output.replace(/(\r\n|\n|\r)/gm,"")
-			msg.send "Deployed `#{application}` successfully to `#{environment}` by `#{username}`."
+		rest.post('https://api.pulsar.local:8001/' + application + '/' + environment,
+			data:
+				action: '_deploy_'
+		).on 'complete', (data) ->
+			msg.send 'Response wait for deploy -> assigned task ID ' + response.taskId
 
-	robot.respond /deploy:pending ([^\s]+) ([^\s]+)$/i, (msg) ->
+	robot.respond /deploy pending ([^\s]+) ([^\s]+)$/i, (msg) ->
 		application = msg.match[1]
 		environment = msg.match[2]
 
-		execute msg, 'date', null, (output) =>
-			msg.send "Pending changes for deploying `#{application}` to `#{environment}`:\n#{output}"
+		msg.send "Deploy pending for `#{application}` to `#{environment}`"
 
+		rest.post('https://api.pulsar.local:8001/' + application + '/' + environment,
+			data:
+				action: 'deploy:pending'
+		).on 'complete', (response) ->
+				msg.send 'Response wait for deploy:pending -> assigned task ID ' + response.taskId
 
-execute = (msg, command, args, onSuccess) ->
-	onError = (error) ->
-		msg.send "Command failed: `#{command}`:\n#{error}"
-
-	process = spawn command, args
-	output = ''
-	process.stdout.on 'data', (data) ->
-		output += data
-	process.stderr.on 'data', (data) ->
-		output += data
-	process.on 'exit', (code) ->
-		if 0 != code
-			onError(output)
-		else
-			onSuccess(output)
-	process.on 'error', (code) ->
-		onError(output)
+	robot.respond /deploy tasks/i, (msg) ->
+		rest.get('https://api.pulsar.local:8001/tasks')
+		.on 'complete', (response) ->
+				message = 'Tasks:'
+				_.each response, (task) ->
+					message += "\n" + task.status + ' task "' + task.action + ' ' + task.app + ' ' + task.env + '" with ID ' + task.id
+				msg.send message
