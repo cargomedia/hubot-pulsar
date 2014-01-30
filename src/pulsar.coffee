@@ -34,7 +34,9 @@ module.exports = (robot) ->
 			data:
 				action: 'deploy:pending'
 		).on 'complete', (response) ->
+				taskChangeListener response.taskId, msg
 				msg.send 'Response wait for deploy:pending -> assigned task ID ' + response.taskId
+
 
 	robot.respond /deploy tasks/i, (msg) ->
 		rest.get('https://api.pulsar.local:8001/tasks')
@@ -43,3 +45,11 @@ module.exports = (robot) ->
 				_.each response, (task) ->
 					message += "\n" + task.status + ' task "' + task.action + ' ' + task.app + ' ' + task.env + '" with ID ' + task.id
 				msg.send message
+
+taskChangeListener = (taskId, msg) ->
+	rest.get('https://api.pulsar.local:8001/task/' + taskId + '/state')
+	.on 'complete', (response) ->
+		if response.changed
+			msg.send response.task.output
+		if response.task.status == 'running'
+			taskChangeListener taskId, msg
