@@ -22,34 +22,39 @@ module.exports = (robot) ->
 			data:
 				action: '_deploy_'
 		).on 'complete', (data) ->
-			msg.send 'Response wait for deploy -> assigned task ID ' + response.taskId
+			msg.send 'Response wait for deploy -> assigned task ID ' + response.id
 
 	robot.respond /deploy pending ([^\s]+) ([^\s]+)$/i, (msg) ->
 		application = msg.match[1]
 		environment = msg.match[2]
+		action = 'deploy:pending'
 
 		msg.send "Deploy pending for `#{application}` to `#{environment}`"
 
 		rest.post('https://api.pulsar.local:8001/' + application + '/' + environment,
 			data:
-				action: 'deploy:pending'
+				action: action
 		).on 'complete', (response) ->
-				taskChangeListener response.taskId, msg
-				msg.send 'Response wait for deploy:pending -> assigned task ID ' + response.taskId
-
+				taskChangeListener response.id, msg
+				msg.send 'Response wait for deploy:pending -> assigned task ID ' + response.id
+				msg.send 'Task status ' + response.url
 
 	robot.respond /deploy tasks/i, (msg) ->
 		rest.get('https://api.pulsar.local:8001/tasks')
 		.on 'complete', (response) ->
 				message = 'Tasks:'
-				_.each response, (task) ->
+				_.each response.tasks, (task) ->
 					message += "\n" + task.status + ' task "' + task.action + ' ' + task.app + ' ' + task.env + '" with ID ' + task.id
 				msg.send message
+				msg.send 'Visit pulsar ' + response.url
 
 taskChangeListener = (taskId, msg) ->
 	rest.get('https://api.pulsar.local:8001/task/' + taskId + '/state')
 	.on 'complete', (response) ->
 		if response.changed
-			msg.send response.task.output
-		if response.task.status == 'running'
+			if response.task.action == 'deploy:pending'
+				pendingList = response.task.output.match(/#[0-9]+:[^\n]+/g)
+				msg.send pendingList.join "\n"
+
+		if response.task.status == 'RUNNING'
 			taskChangeListener taskId, msg
