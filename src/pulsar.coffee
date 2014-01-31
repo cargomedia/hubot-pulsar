@@ -54,7 +54,10 @@ taskChangeListener = (taskId, msg) ->
 		if response.changed
 			if response.task.action == 'deploy:pending'
 				pendingList = response.task.output.match(/#[0-9]+:[^\n]+/g)
-				msg.send pendingList.join "\n"
+				if _.size pendingList
+					msg.send pendingList.join "\n"
+				else
+					msg.send '#0000: nothing to deploy'
 
 		if response.task.status == 'RUNNING'
 			taskChangeListener taskId, msg
