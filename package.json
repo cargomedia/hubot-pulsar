@@ -1,7 +1,7 @@
 {
 	"name": "hubot-pulsar",
-	"description": "The deploy plugin to use during deploy phase via Pulsar REST API.",
-	"version": "0.0.1",
+	"description": "Hubot script to deploy via Pulsar REST API",
+	"version": "0.0.2",
 	"author": "Cargomedia",
 	"license": "MIT",
 
