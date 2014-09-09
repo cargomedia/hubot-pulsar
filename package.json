@@ -32,9 +32,6 @@
 		"sinon": "*"
 	},
 
-	"main": "./src/pulsar",
+	"main": "./src/pulsar"
 
-	"scripts": {
-		"test": "script/test"
-	}
 }
