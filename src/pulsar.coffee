@@ -9,7 +9,10 @@ spawn = require('child_process').spawn
 rest = require('restler')
 _ = require('underscore')
 SockJS = require('node-sockjs-client')
-API_URL = 'https://api.pulsar.local:8001/'
+
+config =
+  pulsarUrl: process.env.HUBOT_PULSAR_URL or throw new Error("Specify pulsar-rest-api url")
+  pulsarToken: process.env.HUBOT_PULSAR_TOKEN or throw new Error('Specify pulsar-rest-api authentication token')
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0"
 
@@ -18,6 +21,13 @@ jobChangeListener = (->
 
   connect = (url) ->
     sock = new SockJS(url)
+    sock.onopen = () ->
+      sock.send(JSON.stringify({token: config.pulsarToken}))
+    sock.onclose = () ->
+      msg = "Pulsar-rest-api web socket connection was closed. Please restart CargoBot."
+      _.each jobChatInfo, (jobId, chatInfo) ->
+        chatInfo.send msg
+      throw new Error(msg)
     sock.onmessage = (msg) ->
       data = JSON.parse(msg.data)
       updateJob(data.job) if data.event == 'job.change'
@@ -42,7 +52,7 @@ jobChangeListener = (->
   }
 )()
 
-jobChangeListener.connect(API_URL + 'websocket')
+jobChangeListener.connect(config.pulsarUrl + 'websocket')
 
 module.exports = (robot) ->
   robot.respond /deploy\s?(-v|) (pending|)\s?([^\s]+) ([^\s]+)$/i, (chat) ->
@@ -55,7 +65,9 @@ module.exports = (robot) ->
     command = "#{task} '#{application}' to '#{environment}'"
     chat.send command + " started"
 
-    rest.post(API_URL + application + '/' + environment,
+    rest.post(config.pulsarUrl + application + '/' + environment,
+      username: config.pulsarToken
+      password: 'x-oauth-basic'
       data:
         task: task
     ).on("complete", (job) ->
@@ -72,8 +84,10 @@ module.exports = (robot) ->
     )
 
   robot.respond /jobs/i, (chat) ->
-    rest.get(API_URL + 'jobs')
-    .on 'complete', (response) ->
+    rest.get(config.pulsarUrl + 'jobs',
+      username: config.pulsarToken
+      password: 'x-oauth-basic'
+    ).on 'complete', (response) ->
       message = 'Jobs:'
       _.each response, (job) ->
         message += "\n" + job.status + ' job "' + job.task + ' ' + job.app + ' ' + job.env + '" with ID ' + job.id
