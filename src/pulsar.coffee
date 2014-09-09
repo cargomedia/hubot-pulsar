@@ -8,56 +8,73 @@
 spawn = require('child_process').spawn
 rest = require('restler')
 _ = require('underscore')
+SockJS = require('node-sockjs-client')
+API_URL = 'https://api.pulsar.local:8001/'
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0"
 
+jobChangeListener = (->
+  jobChatInfo = {}
+
+  connect = (url) ->
+    sock = new SockJS(url)
+    sock.onmessage = (msg) ->
+      data = JSON.parse(msg.data)
+      updateJob(data.job) if data.event == 'job.change'
+
+  updateJob = (job)->
+    chatInfo = jobChatInfo[job.id]
+    if chatInfo.isVerbose
+      chat = chatInfo.chat
+      lastSentPos = chatInfo.lastSentPos
+      chat.send job.output.substring(lastSentPos)
+      chatInfo.lastSentPos = job.output.length - 1
+    if job.status != 'RUNNING'
+      chatInfo.chat.send "Job #{job.id} finished with status: #{job.status}. More details here #{chatInfo.jobUrl}"
+      delete jobChatInfo[job.id]
+
+  addJob = (jobId, chat, jobUrl, isVerbose) ->
+    jobChatInfo[jobId] = {chat: chat, lastSentPos: 0, jobUrl: jobUrl, isVerbose: isVerbose}
+
+  return {
+    connect: connect
+    addJob: addJob
+  }
+)()
+
+jobChangeListener.connect(API_URL + 'websocket')
+
 module.exports = (robot) ->
-	robot.respond /deploy ([^\s]+) ([^\s]+)$/i, (msg) ->
-		application = msg.match[1]
-		environment = msg.match[2]
+  robot.respond /deploy\s?(-v|) (pending|)\s?([^\s]+) ([^\s]+)$/i, (chat) ->
+    isVerbose = chat.match[1] == '-v'
+    isPending = chat.match[2] == 'pending'
+    task =  (if isPending then "deploy:pending" else "deploy")
+    application = chat.match[3]
+    environment = chat.match[4]
 
-		msg.send "Deploying `#{application}` to `#{environment}`"
+    command = "#{task} '#{application}' to '#{environment}'"
+    chat.send command + " started"
 
-		rest.post('https://api.pulsar.local:8001/' + application + '/' + environment,
-			data:
-				action: '_deploy_'
-		).on 'complete', (data) ->
-			msg.send 'Response wait for deploy -> assigned task ID ' + response.id
+    rest.post(API_URL + application + '/' + environment,
+      data:
+        task: task
+    ).on("complete", (job) ->
+      if job.id
+        jobChangeListener.addJob(job.id, chat, job.url, isVerbose)
+        chat.send "#{command} -> assigned job ID " + job.id
+        chat.send "More info here #{job.url}"
+      else
+        chat.send "Your request failed"
+    ).on("error", (error) ->
+      chat.send "Error: " + JSON.stringify error
+    ).on("fail", (error) ->
+      chat.send "Fail: " + JSON.stringify error
+    )
 
-	robot.respond /deploy pending ([^\s]+) ([^\s]+)$/i, (msg) ->
-		application = msg.match[1]
-		environment = msg.match[2]
-		action = 'deploy:pending'
-
-		msg.send "Deploy pending for `#{application}` to `#{environment}`"
-
-		rest.post('https://api.pulsar.local:8001/' + application + '/' + environment,
-			data:
-				action: action
-		).on 'complete', (response) ->
-				taskChangeListener response.id, msg
-				msg.send 'Response wait for deploy:pending -> assigned task ID ' + response.id
-				msg.send 'Task status ' + response.url
-
-	robot.respond /deploy tasks/i, (msg) ->
-		rest.get('https://api.pulsar.local:8001/tasks')
-		.on 'complete', (response) ->
-				message = 'Tasks:'
-				_.each response.tasks, (task) ->
-					message += "\n" + task.status + ' task "' + task.action + ' ' + task.app + ' ' + task.env + '" with ID ' + task.id
-				msg.send message
-				msg.send 'Visit pulsar ' + response.url
-
-taskChangeListener = (taskId, msg) ->
-	rest.get('https://api.pulsar.local:8001/task/' + taskId + '/state')
-	.on 'complete', (response) ->
-		if response.changed
-			if response.task.action == 'deploy:pending'
-				pendingList = response.task.output.match(/#[0-9]+:[^\n]+/g)
-				if _.size pendingList
-					msg.send pendingList.join "\n"
-				else
-					msg.send '#0000: nothing to deploy'
-
-		if response.task.status == 'RUNNING'
-			taskChangeListener taskId, msg
+  robot.respond /jobs/i, (chat) ->
+    rest.get(API_URL + 'jobs')
+    .on 'complete', (response) ->
+      message = 'Jobs:'
+      _.each response, (job) ->
+        message += "\n" + job.status + ' job "' + job.task + ' ' + job.app + ' ' + job.env + '" with ID ' + job.id
+      chat.send message
