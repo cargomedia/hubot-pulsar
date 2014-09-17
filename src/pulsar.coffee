@@ -26,15 +26,15 @@ jobChangeListener = (->
     chatInfo = jobChatInfo[job.id]
     if chatInfo.isVerbose
       chat = chatInfo.chat
-      lastSentPos = chatInfo.lastSentPos
+      lastSentPos = chatInfo.lastSentPos || 0
       chat.send job.output.substring(lastSentPos)
       chatInfo.lastSentPos = job.output.length - 1
     if job.status != 'RUNNING'
-      chatInfo.chat.send "Job #{job.id} finished with status: #{job.status}. More details here #{chatInfo.jobUrl}"
+      chatInfo.complete(job) if chatInfo.complete
       delete jobChatInfo[job.id]
 
-  addJob = (jobId, chat, jobUrl, isVerbose) ->
-    jobChatInfo[jobId] = {chat: chat, lastSentPos: 0, jobUrl: jobUrl, isVerbose: isVerbose}
+  addJob = (jobId, chat, isVerbose, complete) ->
+    jobChatInfo[jobId] = {chat: chat, isVerbose: isVerbose, complete: complete}
 
   return {
     connect: connect
@@ -44,31 +44,46 @@ jobChangeListener = (->
 
 jobChangeListener.connect(API_URL + 'websocket')
 
+runJob = (chat, application, environment, task, success) ->
+  command = "#{task} '#{application}' to '#{environment}'"
+  chat.send command + ' started'
+  rest.post(API_URL + application + '/' + environment,
+    data:
+      task: task
+  ).on('complete', (job) ->
+    if job.id
+      chat.send "#{command} -> assigned job ID #{job.id}"
+      success job
+    else
+      chat.send command + ' failed'
+  ).on("error", (error) ->
+    chat.send 'Error: ' + JSON.stringify error
+  ).on("fail", (error) ->
+    chat.send 'Fail: ' + JSON.stringify error
+  )
+
+
 module.exports = (robot) ->
-  robot.respond /deploy\s?(-v|) (pending|)\s?([^\s]+) ([^\s]+)$/i, (chat) ->
+  robot.respond /deploy (-v|)\s?([^\s]+) ([^\s]+)$/i, (chat) ->
     isVerbose = chat.match[1] == '-v'
-    isPending = chat.match[2] == 'pending'
-    task = (if isPending then "deploy:pending" else "deploy")
-    application = chat.match[3]
-    environment = chat.match[4]
+    application = chat.match[2]
+    environment = chat.match[3]
+    task = 'deploy'
 
-    command = "#{task} '#{application}' to '#{environment}'"
-    chat.send command + " started"
+    runJob(chat, application, environment, task, (job) ->
+      jobUrl = job.url
+      chat.send "More info here #{jobUrl}"
+      jobChangeListener.addJob(job.id, chat, isVerbose, (job)->
+        chat.send "Job #{job.id} finished with status: #{job.status}. More details here #{jobUrl}"
+      )
+    )
 
-    rest.post(API_URL + application + '/' + environment,
-      data:
-        task: task
-    ).on("complete", (job) ->
-      if job.id
-        jobChangeListener.addJob(job.id, chat, job.url, isVerbose)
-        chat.send "#{command} -> assigned job ID " + job.id
-        chat.send "More info here #{job.url}"
-      else
-        chat.send "Your request failed"
-    ).on("error", (error) ->
-      chat.send "Error: " + JSON.stringify error
-    ).on("fail", (error) ->
-      chat.send "Fail: " + JSON.stringify error
+  robot.respond /deploy pending ([^\s]+) ([^\s]+)$/i, (chat) ->
+    application = chat.match[1]
+    environment = chat.match[2]
+    task = 'deploy:pending'
+    runJob(chat, application, environment, task, (job) ->
+      jobChangeListener.addJob(job.id, chat, true)
     )
 
   robot.respond /jobs/i, (chat) ->
