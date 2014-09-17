@@ -11,7 +11,7 @@ _ = require('underscore')
 SockJS = require('node-sockjs-client')
 API_URL = 'https://api.pulsar.local:8001/'
 
-process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0"
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'
 
 jobChangeListener = (->
   jobChatInfo = {}
@@ -56,9 +56,9 @@ runJob = (chat, application, environment, task, success) ->
       success job
     else
       chat.send command + ' failed'
-  ).on("error", (error) ->
+  ).on('error', (error) ->
     chat.send 'Error: ' + JSON.stringify error
-  ).on("fail", (error) ->
+  ).on('fail', (error) ->
     chat.send 'Fail: ' + JSON.stringify error
   )
 
@@ -91,5 +91,5 @@ module.exports = (robot) ->
     .on 'complete', (response) ->
       message = 'Jobs:'
       _.each response, (job) ->
-        message += "\n" + job.status + ' job "' + job.task + ' ' + job.app + ' ' + job.env + '" with ID ' + job.id
+        message += "\n #{job.status} job #{job.task} #{job.app} #{job.env} with ID #{job.id}"
       chat.send message
