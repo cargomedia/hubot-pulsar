@@ -23,10 +23,10 @@ module.exports = (robot) ->
 
     runJob(chat, application, environment, task, (job) ->
       jobUrl = job.url
-      chat.send "More info here #{jobUrl}"
       jobChangeListener.addJob(job.id, chat, isVerbose, (job)->
         chat.send "Job #{job.id} finished with status: #{job.status}. More details here #{jobUrl}"
       )
+      chat.send "More info here #{jobUrl}"
     )
 
   robot.respond /deploy pending ([^\s]+) ([^\s]+)$/i, (chat) ->
