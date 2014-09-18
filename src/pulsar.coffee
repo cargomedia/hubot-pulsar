@@ -5,34 +5,14 @@
 #   hubot deploy:pending <application> <environment> - Show pending changes
 #   hubot deploy <application> <environment> - Deploy application
 
-spawn = require('child_process').spawn
-rest = require('restler')
 _ = require('underscore')
 jobChangeListener = require('./job-change-listener')
 API_URL = 'https://api.pulsar.local:8001/'
+runJob = require('./run-job')(API_URL)
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'
 
 jobChangeListener.connect(API_URL + 'websocket')
-
-runJob = (chat, application, environment, task, success) ->
-  command = "#{task} '#{application}' to '#{environment}'"
-  chat.send command + ' started'
-  rest.post(API_URL + application + '/' + environment,
-    data:
-      task: task
-  ).on('complete', (job) ->
-    if job.id
-      chat.send "#{command} -> assigned job ID #{job.id}"
-      success job
-    else
-      chat.send command + ' failed'
-  ).on('error', (error) ->
-    chat.send 'Error: ' + JSON.stringify error
-  ).on('fail', (error) ->
-    chat.send 'Fail: ' + JSON.stringify error
-  )
-
 
 module.exports = (robot) ->
   robot.respond /deploy (-v|)\s?([^\s]+) ([^\s]+)$/i, (chat) ->
