@@ -8,7 +8,7 @@
 _ = require('underscore')
 jobChangeListener = require('./job-change-listener')
 API_URL = 'https://api.pulsar.local:8001/'
-runJob = require('./run-job')(API_URL)
+PulsarJob = require('./pulsar-job')(API_URL)
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'
 
@@ -16,26 +16,21 @@ jobChangeListener.connect(API_URL + 'websocket')
 
 module.exports = (robot) ->
   robot.respond /deploy (-v|)\s?([^\s]+) ([^\s]+)$/i, (chat) ->
+    job = new PulsarJob(chat.match[2], chat.match[3], 'deploy', chat)
     isVerbose = chat.match[1] == '-v'
-    application = chat.match[2]
-    environment = chat.match[3]
-    task = 'deploy'
-
-    runJob(chat, application, environment, task, (job) ->
-      jobUrl = job.url
-      jobChangeListener.addJob(job.id, chat, isVerbose, (job)->
-        chat.send "Job #{job.id} finished with status: #{job.status}. More details here #{jobUrl}"
+    job.onstart = (jobData) ->
+      jobUrl = jobData.url
+      jobChangeListener.addJob(jobData.id, chat, isVerbose, (jobData)->
+        chat.send "Job #{jobData.id} finished with status: #{jobData.status}. More details here #{jobUrl}"
       )
       chat.send "More info here #{jobUrl}"
-    )
+    job.run()
 
   robot.respond /deploy pending ([^\s]+) ([^\s]+)$/i, (chat) ->
-    application = chat.match[1]
-    environment = chat.match[2]
-    task = 'deploy:pending'
-    runJob(chat, application, environment, task, (job) ->
-      jobChangeListener.addJob(job.id, chat, true)
-    )
+    job = new PulsarJob(chat.match[1], chat.match[2], 'deploy:pending', chat)
+    job.onstart = (jobData) ->
+      jobChangeListener.addJob(jobData.id, chat, true)
+    job.run()
 
   robot.respond /jobs/i, (chat) ->
     rest.get(API_URL + 'jobs')
