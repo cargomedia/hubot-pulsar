@@ -21,7 +21,6 @@ module.exports = (robot) ->
     pending = new PulsarJob(application, environment, 'deploy:pending', chat, true)
     pending.onfinish = ()->
       if(@.data.status != 'FINISHED')
-        chat.send @ + ' can\'t be executed due to previous errors'
         return
       deploy = new PulsarJob(application, environment, 'deploy', chat, isVerbose)
       deploy.onstart = () ->
