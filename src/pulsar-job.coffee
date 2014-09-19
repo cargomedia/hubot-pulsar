@@ -1,11 +1,16 @@
 rest = require('restler')
+_ = require('underscore')
+jobChangeListener = require('./job-change-listener')
 
-PulsarJob = (application, environment, task, chat)->
+PulsarJob = (application, environment, task, chat, isVerbose)->
   @application = application
   @environment = environment
   @task = task
   @chat = chat
+  @isVerbose = isVerbose
+  @data = {}
   @onstart = null
+  @onfinish = null
 
 PulsarJob.API_URL = ''
 
@@ -15,10 +20,12 @@ PulsarJob::run = ()->
   rest.post(PulsarJob.API_URL + @application + '/' + @environment,
     data:
       task: @task
-  ).on('complete', (job) =>
-    if job.id
-      @chat.send "#{@} -> assigned job ID #{job.id}"
-      @onstart job if @onstart
+  ).on('complete', (jobData) =>
+    if jobData.id
+      @setData(jobData)
+      jobChangeListener.addJob(@)
+      if @onstart
+        @onstart()
     else
       @chat.send @ + ' failed'
   ).on('error', (error) =>
@@ -27,9 +34,16 @@ PulsarJob::run = ()->
     @chat.send 'Fail: ' + JSON.stringify error
   )
 
-PulsarJob::toString = ()->
-  return "#{@task} '#{@application}' to '#{@environment}'"
+PulsarJob::setData = (jobData)->
+  _.extend(@data, jobData)
 
-module.exports = (url)->
-  PulsarJob.API_URL = url
+PulsarJob::toString = ()->
+  result = "#{@task} '#{@application}' to '#{@environment}'"
+  if @data.id
+    result += ' id: ' + @data.id
+  return result
+
+module.exports = (apiUrl)->
+  jobChangeListener.connect(apiUrl + 'websocket')
+  PulsarJob.API_URL = apiUrl
   return PulsarJob
