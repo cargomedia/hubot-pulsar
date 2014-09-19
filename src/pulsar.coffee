@@ -5,10 +5,12 @@
 #   hubot deploy:pending <application> <environment> - Show pending changes
 #   hubot deploy <application> <environment> - Deploy application
 
+config =
+  pulsarUrl: process.env.HUBOT_PULSAR_URL or throw new Error("Specify pulsar-rest-api url")
+
 _ = require('underscore')
 jobConfirmationList = require('./job-confirmation-list.coffee')
-API_URL = 'https://api.pulsar.local:8001/'
-PulsarJob = require('./pulsar-job')(API_URL)
+PulsarJob = require('./pulsar-job')(config.pulsarUrl)
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'
 
@@ -35,7 +37,7 @@ module.exports = (robot) ->
     job.run()
 
   robot.respond /jobs/i, (chat) ->
-    rest.get(API_URL + 'jobs')
+    rest.get(config.pulsarUrl + 'jobs')
     .on 'complete', (response) ->
       message = 'Jobs:'
       _.each response, (job) ->
