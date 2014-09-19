@@ -2,46 +2,42 @@ rest = require('restler')
 _ = require('underscore')
 jobChangeListener = require('./job-change-listener')
 
-PulsarJob = (application, environment, task, chat, isVerbose)->
-  @application = application
-  @environment = environment
-  @task = task
-  @chat = chat
-  @isVerbose = isVerbose
-  @data = {}
-  @onstart = null
-  @onfinish = null
+class PulsarJob
 
-PulsarJob.API_URL = ''
+  constructor: (@application, @environment, @task, @chat, @isVerbose) ->
+    @data = {}
+    @onstart = null
+    @onfinish = null
 
-PulsarJob::run = ()->
-  @chat.send @ + ' started'
-  self = @
-  rest.post(PulsarJob.API_URL + @application + '/' + @environment,
-    data:
-      task: @task
-  ).on('complete', (jobData) =>
-    if jobData.id
-      @setData(jobData)
-      jobChangeListener.addJob(@)
-      if @onstart
-        @onstart()
-    else
-      @chat.send @ + ' failed'
-  ).on('error', (error) =>
-    @chat.send 'Error: ' + JSON.stringify error
-  ).on('fail', (error) =>
-    @chat.send 'Fail: ' + JSON.stringify error
-  )
+  PulsarJob.API_URL = ''
 
-PulsarJob::setData = (jobData)->
-  _.extend(@data, jobData)
+  run: () ->
+    @chat.send @ + ' started'
+    rest.post(PulsarJob.API_URL + @application + '/' + @environment,
+      data:
+        task: @task
+    ).on('complete', (jobData) =>
+      if jobData.id
+        @setData(jobData)
+        jobChangeListener.addJob(@)
+        if @onstart
+          @onstart()
+      else
+        @chat.send @ + ' failed'
+    ).on('error', (error) =>
+      @chat.send 'Error: ' + JSON.stringify error
+    ).on('fail', (error) =>
+      @chat.send 'Fail: ' + JSON.stringify error
+    )
 
-PulsarJob::toString = ()->
-  result = "#{@task} '#{@application}' to '#{@environment}'"
-  if @data.id
-    result += ' id: ' + @data.id
-  return result
+  setData: (jobData)->
+    _.extend(@data, jobData)
+
+  toString: ()->
+    result = "#{@task} '#{@application}' to '#{@environment}'"
+    if @data.id
+      result += ' id: ' + @data.id
+    return result
 
 module.exports = (apiUrl)->
   jobChangeListener.connect(apiUrl + 'websocket')

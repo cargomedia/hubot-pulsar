@@ -1,23 +1,23 @@
-JobConfirmationList = ->
-  @jobList = {}
-  return
+class JobConfirmationList
 
-JobConfirmationList::_getUser = (chat)->
-  return chat.envelope.user.id
+  jobList = {}
 
-JobConfirmationList::add = (job)->
-  user = @_getUser(job.chat)
-  @jobList[user] = job
+  _getUser: (chat)->
+    return chat.envelope.user.id
 
-JobConfirmationList::get = (chat)->
-  user = @_getUser(chat)
-  return @jobList[user]
+  add: (job)->
+    user = @_getUser(job.chat)
+    jobList[user] = job
 
-JobConfirmationList::remove = (chat)->
-  user = @_getUser(chat)
-  chat.send @jobList[user] + ' removed from the execution'
-  delete @jobList[user]
+  get: (chat)->
+    user = @_getUser(chat)
+    return jobList[user]
 
-jobConfirmationList = new JobConfirmationList()
+  remove: (chat)->
+    user = @_getUser(chat)
+    chat.send jobList[user] + ' removed from the execution'
+    delete jobList[user]
+
+jobConfirmationList = new JobConfirmationList
 
 module.exports = jobConfirmationList
