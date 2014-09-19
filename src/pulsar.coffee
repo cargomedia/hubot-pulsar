@@ -28,7 +28,6 @@ module.exports = (robot) ->
       deploy.onfinish = () ->
         chat.send "#{@} finished with status: #{@data.status}. More details here #{@data.url}"
       jobConfirmationList.add(deploy)
-      chat.send 'Please confirm that you still want to deploy.(y/n/ok)'
     pending.run()
 
   robot.respond /deploy pending ([^\s]+) ([^\s]+)$/i, (chat) ->

@@ -8,6 +8,7 @@ class JobConfirmationList
   add: (job)->
     user = @_getUser(job.chat)
     jobList[user] = job
+    job.chat.send 'Please confirm that you still want to deploy.(y/n/ok)'
 
   get: (chat)->
     user = @_getUser(chat)
