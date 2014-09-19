@@ -27,7 +27,7 @@ module.exports = (robot) ->
         deploy.onstart = (jobData) ->
           jobUrl = jobData.url
           jobChangeListener.addJob(jobData.id, chat, isVerbose, (jobData)->
-            chat.send "Job #{jobData.id} finished with status: #{jobData.status}. More details here #{jobUrl}"
+            chat.send "#{deploy} finished with status: #{jobData.status}. More details here #{jobUrl}"
           )
           chat.send "More info here #{jobUrl}"
         jobConfirmationList.add(deploy)

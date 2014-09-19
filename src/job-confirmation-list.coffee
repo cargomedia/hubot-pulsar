@@ -15,6 +15,7 @@ JobConfirmationList::get = (chat)->
 
 JobConfirmationList::remove = (chat)->
   user = @_getUser(chat)
+  chat.send @jobList[user] + ' removed from the execution'
   delete @jobList[user]
 
 jobConfirmationList = new JobConfirmationList()
