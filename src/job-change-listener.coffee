@@ -1,3 +1,4 @@
+config = require('./config')
 SockJS = require('node-sockjs-client')
 
 class JobChangeListener
@@ -28,5 +29,5 @@ class JobChangeListener
     jobList[job.data.id] = job
 
 jobChangeListener = new JobChangeListener()
-
+jobChangeListener.connect(config.pulsarUrl + 'websocket')
 module.exports = jobChangeListener
