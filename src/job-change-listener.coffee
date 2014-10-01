@@ -4,6 +4,7 @@ SockJS = require('node-sockjs-client')
 class JobChangeListener
 
   jobList = {}
+  jobOutputList = {}
 
   connect: (url, authToken)->
     sock = new SockJS(url)
@@ -16,17 +17,21 @@ class JobChangeListener
 
   updateJob: (jobData)->
     job = jobList[jobData.id]
-    return if !job
-    if job.isVerbose
-      lastSentPos = job.lastSentPos || 0
-      job.chat.send jobData.output.substring(lastSentPos)
-      job.lastSentPos = jobData.output.length - 1
+    return unless job
+    job.setData(jobData)
+    @emitChange job
     if jobData.status != 'RUNNING'
-      job.setData(jobData)
-      delete jobList[jobData.id]
-      job.onfinish() if job.onfinish
-      if jobData.status != 'FINISHED'
-        job.chat.send "#{job} didn't finish properly. Status #{jobData.status}"
+      @finishJob(job)
+
+  emitChange: (job)->
+    lastSentPosition = jobOutputList[job.data.id] || 0
+    job.emit 'change', job.data.output.substring(lastSentPosition)
+    jobOutputList[job.data.id] = job.data.output.length - 1
+
+  finishJob: (job) ->
+    delete jobList[job.data.id]
+    delete jobOutputList[job.data.id]
+    job.emit 'finish'
 
   addJob: (job) ->
     jobList[job.data.id] = job

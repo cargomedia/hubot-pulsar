@@ -5,10 +5,10 @@ class JobConfirmationList
   _getUser: (chat)->
     return chat.envelope.user.id
 
-  add: (job)->
-    user = @_getUser(job.chat)
+  add: (chat, job)->
+    user = @_getUser(chat)
     jobList[user] = job
-    job.chat.send 'Please confirm that you still want to deploy.(y/n/ok)'
+    chat.send 'Please confirm that you still want to deploy.(y/n/ok)'
 
   get: (chat)->
     user = @_getUser(chat)
