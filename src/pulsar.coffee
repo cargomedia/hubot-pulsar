@@ -16,11 +16,12 @@ process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'
 module.exports = (robot) ->
 
   isAuthorized = (chat)->
-    unless robot.auth.hasRole(chat.envelope.user, config.hipchatRoles)
-      chat.reply 'You don\'t have the rights to run pulsar commands'
-      chat.finish()
-      return false
-    return true
+    if robot.auth.hasRole(chat.envelope.user, config.hipchatRoles)
+      return true
+
+    chat.reply 'You don\'t have the rights to run pulsar commands'
+    chat.finish()
+    return false
 
   robot.respond /deploy (-v|)\s?([^\s]+) ([^\s]+)$/i, (chat) ->
     return unless isAuthorized(chat)
