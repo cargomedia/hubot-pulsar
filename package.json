@@ -21,6 +21,7 @@
 	"dependencies": {
 		"coffee-script": "~1.6",
 		"restler": ">=3.1.0",
+		"node-sockjs-client": "~1.0.7",
 		"underscore": ">=1.5.2"
 	},
 
@@ -31,9 +32,6 @@
 		"sinon": "*"
 	},
 
-	"main": "./src/pulsar",
+	"main": "./src/pulsar"
 
-	"scripts": {
-		"test": "script/test"
-	}
 }
