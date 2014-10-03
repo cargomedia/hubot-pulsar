@@ -1,3 +1,4 @@
+config = require('./config')
 rest = require('restler')
 _ = require('underscore')
 jobChangeListener = require('./job-change-listener')
@@ -9,11 +10,9 @@ class PulsarJob
     @onstart = null
     @onfinish = null
 
-  PulsarJob.API_URL = ''
-
   run: () ->
     @chat.send @ + ' started'
-    rest.post(PulsarJob.API_URL + @application + '/' + @environment,
+    rest.post(config.pulsarUrl + @application + '/' + @environment,
       data:
         task: @task
     ).on('complete', (jobData) =>
@@ -39,7 +38,4 @@ class PulsarJob
       result += ' id: ' + @data.id
     return result
 
-module.exports = (apiUrl)->
-  jobChangeListener.connect(apiUrl + 'websocket')
-  PulsarJob.API_URL = apiUrl
-  return PulsarJob
+module.exports = PulsarJob
