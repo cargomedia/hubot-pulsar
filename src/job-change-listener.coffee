@@ -5,8 +5,11 @@ class JobChangeListener
 
   jobList = {}
 
-  connect: (url)->
+  connect: (url, authToken)->
     sock = new SockJS(url)
+    if authToken
+      sock.onopen = () ->
+        sock.send(JSON.stringify({token: authToken}))
     sock.onmessage = (msg) =>
       data = JSON.parse(msg.data)
       @updateJob(data.job) if data.event == 'job.change'
@@ -29,5 +32,5 @@ class JobChangeListener
     jobList[job.data.id] = job
 
 jobChangeListener = new JobChangeListener()
-jobChangeListener.connect(config.pulsarUrl + 'websocket')
+jobChangeListener.connect(config.pulsarApi.url + '/websocket', config.pulsarApi.authToken)
 module.exports = jobChangeListener

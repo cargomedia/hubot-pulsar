@@ -1,4 +1,4 @@
-config = require('./config')
+pulsarApi = require('./pulsar-api')
 rest = require('restler')
 _ = require('underscore')
 jobChangeListener = require('./job-change-listener')
@@ -12,7 +12,7 @@ class PulsarJob
 
   run: () ->
     @chat.send @ + ' started'
-    rest.post(config.pulsarUrl + @application + '/' + @environment,
+    pulsarApi.post("/#{@application}/#{@environment}",
       data:
         task: @task
     ).on('complete', (jobData) =>

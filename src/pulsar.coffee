@@ -6,7 +6,7 @@
 #   hubot deploy <application> <environment> - Deploy application
 
 _ = require('underscore')
-config = require('./config')
+pulsarApi = require('./pulsar-api')
 jobConfirmationList = require('./job-confirmation-list.coffee')
 PulsarJob = require('./pulsar-job')
 
@@ -35,7 +35,7 @@ module.exports = (robot) ->
     job.run()
 
   robot.respond /jobs/i, (chat) ->
-    rest.get(config.pulsarUrl + 'jobs')
+    pulsarApi.get('/jobs')
     .on 'complete', (response) ->
       message = 'Jobs:'
       _.each response, (job) ->
