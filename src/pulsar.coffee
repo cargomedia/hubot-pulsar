@@ -14,7 +14,6 @@ PulsarJob = require('./pulsar-job')
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'
 
 module.exports = (robot) ->
-
   isAuthorized = (chat)->
     if robot.auth.hasRole(chat.envelope.user, config.hipchatRoles)
       return true
@@ -29,21 +28,37 @@ module.exports = (robot) ->
     environment = chat.match[3]
     isVerbose = chat.match[1] == '-v'
 
-    pending = new PulsarJob(application, environment, 'deploy:pending', chat, true)
-    pending.onfinish = ()->
-      if(@.data.status != 'FINISHED')
-        return
-      deploy = new PulsarJob(application, environment, 'deploy', chat, isVerbose)
-      deploy.onstart = () ->
-        chat.send "#{@}. More info here #{@.data.url}"
-      deploy.onfinish = () ->
+    pending = new PulsarJob(application, environment, 'deploy:pending')
+    pending.on('finish', ()->
+      chat.send @data.output
+      return if(@data.status != 'FINISHED')
+      deploy = new PulsarJob(application, environment, 'deploy')
+      deploy.on('create', () ->
+        chat.send "Job was created: #{@}. More info here #{@data.url}"
+      ).on('finish', () ->
         chat.send "#{@} finished with status: #{@data.status}. More details here #{@data.url}"
-      jobConfirmationList.add(deploy)
+      ).on('error', () ->
+        chat.send "#{@} failed due to #{JSON.stringify(error)}"
+      )
+      if isVerbose
+        deploy.on('change', (output)->
+          chat.send output
+        )
+      jobConfirmationList.add(chat, deploy)
+    ).on('error', (error)->
+      chat.send "#{@} failed due to #{JSON.stringify(error)}"
+    )
     pending.run()
+    chat.send pending + ' in progress'
 
   robot.respond /deploy pending ([^\s]+) ([^\s]+)$/i, (chat) ->
     return unless isAuthorized(chat)
-    job = new PulsarJob(chat.match[1], chat.match[2], 'deploy:pending', chat, true)
+    job = new PulsarJob(chat.match[1], chat.match[2], 'deploy:pending')
+    job.on('change', (output) ->
+      chat.send output
+    ).on('error', (error)->
+      chat.send "#{@} failed due to #{JSON.stringify(error)}"
+    )
     job.run()
 
   robot.respond /jobs/i, (chat) ->
@@ -62,5 +77,6 @@ module.exports = (robot) ->
     if(isYes)
       job = jobConfirmationList.get(chat)
       job.run()
+      chat.send job + ' in progress'
     else
       jobConfirmationList.remove(chat)
