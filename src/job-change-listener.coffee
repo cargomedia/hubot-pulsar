@@ -7,7 +7,7 @@ class JobChangeListener
   jobOutputList = {}
 
   constructor: ()->
-    @.connect(config.pulsarApi.url + '/websocket', config.pulsarApi.authToken)
+    @connect(config.pulsarApi.url + '/websocket', config.pulsarApi.authToken)
 
   connect: (url, authToken)->
     sock = new SockJS(url)

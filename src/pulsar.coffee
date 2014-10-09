@@ -30,11 +30,11 @@ module.exports = (robot) ->
 
     pending = new PulsarJob(application, environment, 'deploy:pending')
     pending.on('finish', ()->
-      chat.send @.data.output
-      return if(@.data.status != 'FINISHED')
+      chat.send @data.output
+      return if(@data.status != 'FINISHED')
       deploy = new PulsarJob(application, environment, 'deploy')
       deploy.on('create', () ->
-        chat.send "Job was created: #{@}. More info here #{@.data.url}"
+        chat.send "Job was created: #{@}. More info here #{@data.url}"
       ).on('finish', () ->
         chat.send "#{@} finished with status: #{@data.status}. More details here #{@data.url}"
       ).on('error', () ->
