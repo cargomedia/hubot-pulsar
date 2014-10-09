@@ -3,12 +3,12 @@ config = require('./config')
 rest = require('restler')
 
 PulsarApi = rest.service(() ->
-  if config.pulsarAuthToken
-    @defaults.username = config.pulsarAuthToken
+  if config.pulsarApi.authToken
+    @defaults.username = config.pulsarApi.authToken
     @defaults.password = 'x-oauth-basic'
   return
 ,
-  baseURL: config.pulsarUrl
+  baseURL: config.pulsarApi.url
 )
 
 module.exports = new PulsarApi
