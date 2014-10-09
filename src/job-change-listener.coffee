@@ -40,5 +40,4 @@ class JobChangeListener
     jobList[job.data.id] = job
 
 jobChangeListener = new JobChangeListener()
-jobChangeListener.connect(config.pulsarUrl + '/websocket', config.pulsarAuthToken)
 module.exports = jobChangeListener
