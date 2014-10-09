@@ -12,7 +12,7 @@ class Config
     return JSON.parse(content)
 
   validate: (data) ->
-    throw new Error('Specify pulsar-rest-api url `pulsarUrl`') unless data.pulsarUrl
+    throw new Error('Specify pulsar-rest-api url `pulsarApi.url`') unless data.pulsarApi.url
 
 config = new Config(__dirname + '/../config.json')
 module.exports = config

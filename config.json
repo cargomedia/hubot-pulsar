@@ -1,4 +1,6 @@
 {
-  "pulsarUrl": "https://api.pulsar.local:8001",
-  "pulsarAuthToken": ""
+  "pulsarApi": {
+    "url": "https://api.pulsar.local:8001",
+    "authToken": ""
+  }
 }
