@@ -4,17 +4,13 @@ rest = require('restler')
 
 class PulsarApiCluster
   constructor: ()->
-    apiConfigList = config.pulsarApi
+    defaultApiConfig = _.omit(config.pulsarApi, 'auxiliary')
+    @defaultApi = @_createApi(defaultApiConfig)
     @instanceMap = {}
-    _.each(apiConfigList, (apiConfig)=>
-      name = @_getApiName(apiConfig.application, apiConfig.environment)
+    _.each(config.pulsarApi.auxiliary, (apiConfig, apiName)=>
       api = @_createApi(apiConfig)
-      @instanceMap[name] = api
-      if(!name)
-        @defaultApi = api
+      @instanceMap[apiName] = api
     )
-    if(!@defaultApi)
-      @defaultApi = _.first(@instanceMap)
 
   get: (application, environment) ->
     if(_.size(@instanceMap) == 1)
