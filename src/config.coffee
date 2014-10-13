@@ -2,7 +2,7 @@ _ = require('underscore')
 fs = require('fs')
 
 class Config
-  constructor: (filePath) ->
+  constructor: () ->
     filePath = @findConfig()
     data = @parse(filePath)
     @validate(data)
@@ -36,5 +36,5 @@ class Config
       throw new Error("Define `#{apiName}.url` in the config")
 
 
-config = new Config(__dirname + '/../config.json')
+config = new Config()
 module.exports = config
