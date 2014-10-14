@@ -22,6 +22,7 @@ module.exports = (robot) ->
     chat.finish()
     return false
 
+
   robot.respond /deploy (-v|)\s?([^\s]+) ([^\s]+)$/i, (chat) ->
     return unless isAuthorized(chat)
     application = chat.match[2]
@@ -29,13 +30,13 @@ module.exports = (robot) ->
     isVerbose = chat.match[1] == '-v'
 
     pending = new PulsarJob(application, environment, 'deploy:pending')
-    pending.on('finish', ()->
+    pending.on('finish',()->
       chat.send @data.output
       return if(@data.status != 'FINISHED')
       deploy = new PulsarJob(application, environment, 'deploy')
-      deploy.on('create', () ->
+      deploy.on('create',() ->
         chat.send "Job was created: #{@}. More info here #{@data.url}"
-      ).on('finish', () ->
+      ).on('finish',() ->
         chat.send "#{@} finished with status: #{@data.status}. More details here #{@data.url}"
       ).on('error', () ->
         chat.send "#{@} failed due to #{JSON.stringify(error)}"
@@ -48,27 +49,32 @@ module.exports = (robot) ->
     ).on('error', (error)->
       chat.send "#{@} failed due to #{JSON.stringify(error)}"
     )
-    pending.run()
+    pulsarApi.runJob(pending)
     chat.send pending + ' in progress'
 
   robot.respond /deploy pending ([^\s]+) ([^\s]+)$/i, (chat) ->
     return unless isAuthorized(chat)
     job = new PulsarJob(chat.match[1], chat.match[2], 'deploy:pending')
-    job.on('change', (output) ->
+    job.on('change',(output) ->
       chat.send output
     ).on('error', (error)->
       chat.send "#{@} failed due to #{JSON.stringify(error)}"
     )
-    job.run()
+    pulsarApi.runJob(job)
 
   robot.respond /(?:([^\s]+) ([^\s]+) )?jobs/i, (chat) ->
     return unless isAuthorized(chat)
-    api = pulsarApi.getApi(chat.match[1], chat.match[2])
-    api.get('/jobs')
-    .on 'complete', (response) ->
+    application = chat.match[1]
+    environment = chat.match[2]
+
+    pulsarApi.jobs (jobs) ->
+      jobs = _.filter jobs, (job) ->
+        return false if application && application != job.application
+        return false if environment && environment != job.environment
+        return true
       message = 'Jobs:'
-      _.each response, (job) ->
-        message += "\n #{job.status} job #{job.task} #{job.app} #{job.env} with ID #{job.id}"
+      _.each jobs, (job) ->
+        message += "\n #{job.status} job #{job.task} #{job.application} #{job.environment} with ID #{job.id}"
       chat.send message
 
   robot.respond /((?:y(?:es)?)|(?:no?)|(?:ok))$/i, (chat) ->
@@ -77,7 +83,7 @@ module.exports = (robot) ->
     isYes = answer.charAt(0) == 'y' || answer.charAt(0) == 'o'
     if(isYes)
       job = jobConfirmationList.get(chat)
-      job.run()
+      pulsarApi.run(job)
       chat.send job + ' in progress'
     else
       jobConfirmationList.remove(chat)

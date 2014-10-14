@@ -1,40 +1,54 @@
 _ = require('underscore')
 config = require('./config')
 rest = require('restler')
+async = require('async')
+PulsarClient = require('./pulsar-client')
 
 class PulsarApi
+
+  @_clientMap = {}
+
   constructor: ()->
-    defaultApiConfig = _.omit(config.pulsarApi, 'auxiliary')
-    @defaultApi = @_createApi(defaultApiConfig)
-    @instanceMap = {}
-    _.each(config.pulsarApi.auxiliary, (apiConfig, apiName)=>
-      api = @_createApi(apiConfig)
-      @instanceMap[apiName] = api
-    )
+    pulsarApiConfig = config
 
-  getApi: (application, environment) ->
-    if(_.size(@instanceMap) == 1)
-      return @defaultApi
-    name = @_getApiName(application, environment)
-    if(@instanceMap[name])
-      return @instanceMap[name]
+    clientDefaultConfig = _.pick(pulsarApiConfig, 'url', 'token')
+    @_clientDefault = new PulsarClient(clientDefaultConfig.url, clientDefaultConfig.token)
+
+    _.each pulsarApiConfig.auxiliary, (clientConfig, key) ->
+      clientConfig = _.defaults(clientConfig, clientDefaultConfig)
+      @_clientMap[key] = new PulsarClient(clientConfig.url, clientConfig.token)
+
+  getClientDefault: () ->
+    @_clientDefault
+
+  getClient: (application, environment) ->
+    name = @_getClientName(application, environment)
+    if (@_clientMap[name])
+      @_clientMap[name]
     else
-      return @defaultApi
+      @getClientDefault()
 
-  _getApiName: (application, environment) ->
+  runJob: (job) ->
+    client = @getClient(job.app, job.env)
+    client.runJob(job)
+
+  jobs: (callback) ->
+    clientList = _.toArray(@_clientMap)
+    clientList.unshift @_clientDefault
+
+    getClientJobs = (client, callback) ->
+      client.jobs(callback)
+
+    async.map clientList, getClientJobs (err, results) ->
+      concatenator = (all, items) ->
+        all.concat items
+      jobs = _.reduce(results, concatenator, [])
+      callback(jobs)
+
+  _getClientName: (application, environment) ->
     name = ''
     name += application if application
     name += '/' + environment if environment
     return name
-
-  _createApi: (config) ->
-    return rest.service(() ->
-      if config.authToken
-        @defaults.username = config.authToken
-        @defaults.password = 'x-oauth-basic'
-      return
-    ,
-      baseURL: config.url
-    )
 
 module.exports = new PulsarApi()

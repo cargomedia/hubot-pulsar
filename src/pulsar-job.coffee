@@ -1,7 +1,6 @@
 pulsarApi = require('./pulsar-api')
 rest = require('restler')
 _ = require('underscore')
-jobChangeListener = require('./job-change-listener')
 {EventEmitter} = require('events')
 
 class PulsarJob extends EventEmitter
@@ -9,15 +8,14 @@ class PulsarJob extends EventEmitter
   constructor: (@application, @environment, @task) ->
     @data = {}
 
-  run: () ->
-    api = pulsarApi.getApi(@application, @environment)
-    api.post("/#{@application}/#{@environment}",
+  run: (client) ->
+    client.post("/#{@application}/#{@environment}",
       data:
         task: @task
     ).on('complete', (jobData) =>
       if jobData.id
         @setData(jobData)
-        jobChangeListener.addJob(@)
+        client.addJob(@)
         @emit 'create'
       else
         @emit 'error', 'Got empty job id. Job was not created.'
