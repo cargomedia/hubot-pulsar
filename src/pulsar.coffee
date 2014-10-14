@@ -7,7 +7,7 @@
 
 _ = require('underscore')
 config = require('./config')
-pulsarApiCluster = require('./pulsar-api-cluster')
+pulsarApi = require('./pulsar-api')
 jobConfirmationList = require('./job-confirmation-list.coffee')
 PulsarJob = require('./pulsar-job')
 
@@ -63,8 +63,8 @@ module.exports = (robot) ->
 
   robot.respond /(?:([^\s]+) ([^\s]+) )?jobs/i, (chat) ->
     return unless isAuthorized(chat)
-    pulsarApi = pulsarApiCluster.get(chat.match[1], chat.match[2])
-    pulsarApi.get('/jobs')
+    api = pulsarApi.getApi(chat.match[1], chat.match[2])
+    api.get('/jobs')
     .on 'complete', (response) ->
       message = 'Jobs:'
       _.each response, (job) ->

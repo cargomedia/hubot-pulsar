@@ -2,7 +2,7 @@ _ = require('underscore')
 config = require('./config')
 rest = require('restler')
 
-class PulsarApiCluster
+class PulsarApi
   constructor: ()->
     defaultApiConfig = _.omit(config.pulsarApi, 'auxiliary')
     @defaultApi = @_createApi(defaultApiConfig)
@@ -12,7 +12,7 @@ class PulsarApiCluster
       @instanceMap[apiName] = api
     )
 
-  get: (application, environment) ->
+  getApi: (application, environment) ->
     if(_.size(@instanceMap) == 1)
       return @defaultApi
     name = @_getApiName(application, environment)
@@ -37,4 +37,4 @@ class PulsarApiCluster
       baseURL: config.url
     )
 
-module.exports = new PulsarApiCluster()
+module.exports = new PulsarApi()

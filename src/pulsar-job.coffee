@@ -1,4 +1,4 @@
-pulsarApiCluster = require('./pulsar-api-cluster')
+pulsarApi = require('./pulsar-api')
 rest = require('restler')
 _ = require('underscore')
 jobChangeListener = require('./job-change-listener')
@@ -10,8 +10,8 @@ class PulsarJob extends EventEmitter
     @data = {}
 
   run: () ->
-    pulsarApi = pulsarApiCluster.get(@application, @environment)
-    pulsarApi.post("/#{@application}/#{@environment}",
+    api = pulsarApi.getApi(@application, @environment)
+    api.post("/#{@application}/#{@environment}",
       data:
         task: @task
     ).on('complete', (jobData) =>
