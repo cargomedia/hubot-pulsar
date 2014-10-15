@@ -25,15 +25,15 @@ module.exports = (robot) ->
 
   robot.respond /deploy (-v|)\s?([^\s]+) ([^\s]+)$/i, (chat) ->
     return unless isAuthorized(chat)
-    application = chat.match[2]
-    environment = chat.match[3]
+    app = chat.match[2]
+    env = chat.match[3]
     isVerbose = chat.match[1] == '-v'
 
-    pending = new PulsarJob(application, environment, 'deploy:pending')
+    pending = new PulsarJob(app, env, 'deploy:pending')
     pending.on('finish',()->
       chat.send @data.output
       return if(@data.status != 'FINISHED')
-      deploy = new PulsarJob(application, environment, 'deploy')
+      deploy = new PulsarJob(app, env, 'deploy')
       deploy.on('create',() ->
         chat.send "Job was created: #{@}. More info here #{@data.url}"
       ).on('finish',() ->
@@ -64,17 +64,17 @@ module.exports = (robot) ->
 
   robot.respond /(?:([^\s]+) ([^\s]+) )?jobs/i, (chat) ->
     return unless isAuthorized(chat)
-    application = chat.match[1]
-    environment = chat.match[2]
+    app = chat.match[1]
+    env = chat.match[2]
 
     pulsarApi.jobs (jobs) ->
       jobs = _.filter jobs, (job) ->
-        return false if application && application != job.application
-        return false if environment && environment != job.environment
+        return false if app && app != job.app
+        return false if env && env != job.env
         return true
       message = 'Jobs:'
       _.each jobs, (job) ->
-        message += "\n #{job.status} job #{job.task} #{job.application} #{job.environment} with ID #{job.id}"
+        message += "\n #{job.status} job #{job.task} #{job.app} #{job.env} with ID #{job.id}"
       chat.send message
 
   robot.respond /((?:y(?:es)?)|(?:no?)|(?:ok))$/i, (chat) ->

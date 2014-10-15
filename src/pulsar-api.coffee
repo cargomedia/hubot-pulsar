@@ -21,8 +21,8 @@ class PulsarApi
   getClientDefault: () ->
     @_clientDefault
 
-  getClient: (application, environment) ->
-    name = @_getClientName(application, environment)
+  getClient: (app, env) ->
+    name = @_getClientName(app, env)
     if (_clientMap[name])
       _clientMap[name]
     else
@@ -45,10 +45,10 @@ class PulsarApi
       jobs = _.reduce(results, concatenator, [])
       callback(jobs)
 
-  _getClientName: (application, environment) ->
+  _getClientName: (app, env) ->
     name = ''
-    name += application if application
-    name += '/' + environment if environment
+    name += app if app
+    name += '/' + env if env
     return name
 
 module.exports = new PulsarApi()

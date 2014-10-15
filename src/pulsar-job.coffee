@@ -5,11 +5,11 @@ _ = require('underscore')
 
 class PulsarJob extends EventEmitter
 
-  constructor: (@application, @environment, @task) ->
+  constructor: (@app, @env, @task) ->
     @data = {}
 
   run: (client) ->
-    client.post("/#{@application}/#{@environment}",
+    client.post("/#{@app}/#{@env}",
       data:
         task: @task
     ).on('complete', (jobData) =>
@@ -29,7 +29,7 @@ class PulsarJob extends EventEmitter
     _.extend(@data, jobData)
 
   toString: ()->
-    result = "#{@task} '#{@application}' to '#{@environment}'"
+    result = "#{@task} '#{@app}' to '#{@env}'"
     if @data.id
       result += ' id: ' + @data.id
     return result
