@@ -1,7 +1,7 @@
 _ = require('underscore')
 config = require('./config')
 async = require('async')
-PulsarClient = require('./pulsar-client')
+PulsarApiClient = require('./pulsar-api-client')
 
 class PulsarApi
 
@@ -11,11 +11,11 @@ class PulsarApi
     pulsarApiConfig = config.pulsarApi
 
     clientDefaultConfig = _.pick(pulsarApiConfig, 'url', 'token')
-    @_clientDefault = new PulsarClient(clientDefaultConfig.url, clientDefaultConfig.authToken)
+    @_clientDefault = new PulsarApiClient(clientDefaultConfig.url, clientDefaultConfig.authToken)
 
     _.each pulsarApiConfig.auxiliary, (clientConfig, key) ->
       clientConfig = _.defaults({}, clientConfig, clientDefaultConfig)
-      _clientMap[key] = new PulsarClient(clientConfig.url, clientConfig.authToken)
+      _clientMap[key] = new PulsarApiClient(clientConfig.url, clientConfig.authToken)
 
   getClientDefault: () ->
     @_clientDefault

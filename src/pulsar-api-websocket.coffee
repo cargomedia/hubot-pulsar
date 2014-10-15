@@ -1,7 +1,7 @@
 config = require('./config')
 SockJS = require('node-sockjs-client')
 
-class JobChangeListener
+class PulsarApiWebsocket
 
   jobList = {}
   jobOutputList = {}
@@ -39,4 +39,4 @@ class JobChangeListener
   addJob: (job) ->
     jobList[job.data.id] = job
 
-module.exports = JobChangeListener
+module.exports = PulsarApiWebsocket

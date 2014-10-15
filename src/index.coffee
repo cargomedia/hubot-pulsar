@@ -8,7 +8,7 @@
 _ = require('underscore')
 config = require('./config')
 pulsarApi = require('./pulsar-api')
-jobConfirmationList = require('./job-confirmation-list.coffee')
+pulsarJobConfirmList = require('./pulsar-job-confirm-list.coffee')
 PulsarJob = require('./pulsar-job')
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'
@@ -45,7 +45,7 @@ module.exports = (robot) ->
         deploy.on('change', (output)->
           chat.send output
         )
-      jobConfirmationList.add(chat, deploy)
+      pulsarJobConfirmList.add(chat, deploy)
     ).on('error', (error)->
       chat.send "#{@} failed due to #{JSON.stringify(error)}"
     )
@@ -82,8 +82,8 @@ module.exports = (robot) ->
     answer = chat.match[1]
     isYes = answer.charAt(0) == 'y' || answer.charAt(0) == 'o'
     if(isYes)
-      job = jobConfirmationList.get(chat)
+      job = pulsarJobConfirmList.get(chat)
       pulsarApi.runJob(job)
       chat.send job + ' in progress'
     else
-      jobConfirmationList.remove(chat)
+      pulsarJobConfirmList.remove(chat)
