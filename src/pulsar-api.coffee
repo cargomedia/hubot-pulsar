@@ -6,25 +6,25 @@ PulsarClient = require('./pulsar-client')
 
 class PulsarApi
 
-  @_clientMap = {}
+  _clientMap = {}
 
   constructor: ()->
-    pulsarApiConfig = config
+    pulsarApiConfig = config.pulsarApi
 
     clientDefaultConfig = _.pick(pulsarApiConfig, 'url', 'token')
-    @_clientDefault = new PulsarClient(clientDefaultConfig.url, clientDefaultConfig.token)
+    @_clientDefault = new PulsarClient(clientDefaultConfig.url, clientDefaultConfig.authToken)
 
     _.each pulsarApiConfig.auxiliary, (clientConfig, key) ->
-      clientConfig = _.defaults(clientConfig, clientDefaultConfig)
-      @_clientMap[key] = new PulsarClient(clientConfig.url, clientConfig.token)
+      clientConfig = _.defaults({}, clientConfig, clientDefaultConfig)
+      _clientMap[key] = new PulsarClient(clientConfig.url, clientConfig.authToken)
 
   getClientDefault: () ->
     @_clientDefault
 
   getClient: (application, environment) ->
     name = @_getClientName(application, environment)
-    if (@_clientMap[name])
-      @_clientMap[name]
+    if (_clientMap[name])
+      _clientMap[name]
     else
       @getClientDefault()
 
@@ -33,7 +33,7 @@ class PulsarApi
     client.runJob(job)
 
   jobs: (callback) ->
-    clientList = _.toArray(@_clientMap)
+    clientList = _.toArray(_clientMap)
     clientList.unshift @_clientDefault
 
     getClientJobs = (client, callback) ->

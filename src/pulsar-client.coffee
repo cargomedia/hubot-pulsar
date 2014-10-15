@@ -1,5 +1,5 @@
 _ = require('underscore')
-{RestlerService} = require('restler').Service
+RestlerService = require('restler').Service
 
 class PulsarClient extends RestlerService
 
@@ -20,4 +20,4 @@ class PulsarClient extends RestlerService
         callback(_.toArray(jobs))
 
 
-module.exports = new PulsarApi()
+module.exports = PulsarClient
