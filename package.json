@@ -33,6 +33,6 @@
 		"sinon": "*"
 	},
 
-	"main": "./src/pulsar"
+	"main": "./src/index"
 
 }
