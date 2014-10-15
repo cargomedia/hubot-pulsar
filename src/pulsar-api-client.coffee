@@ -1,40 +1,35 @@
 _ = require('underscore')
+PulsarApiRest = require('./pulsar-api-rest')
 PulsarApiWebsocket = require('./pulsar-api-websocket')
-RestlerService = require('restler').Service
 
-class PulsarClient extends RestlerService
+class PulsarClient
+
+  rest = null
+  websocket = null
 
   constructor: (url, token) ->
-    defaults = {}
-    defaults.baseURL = url
-    if token
-      defaults.username = token
-      defaults.password = 'x-oauth-basic'
-    super(defaults)
-    @pulsarWebsocket = new PulsarApiWebsocket(url, token)
-
-  addJob: (job) ->
-    @pulsarWebsocket.addJob(job)
+    rest = new PulsarApiRest(url, token)
+    websocket = new PulsarApiWebsocket(url, token)
 
   runJob: (job) ->
-    @.post("/#{job.app}/#{job.env}",
+    rest.post("/#{job.app}/#{job.env}",
       data:
         task: job.task
-    ).on('complete', (jobData) =>
+    ).on('complete', (jobData) ->
       if jobData.id
         job.setData(jobData)
-        @.addJob(job)
+        websocket.addJob(job)
         job.emit 'create'
       else
         job.emit 'error', 'Got empty job id. Job was not created.'
-    ).on('error', (error) =>
+    ).on('error', (error) ->
       job.emit 'error', error
-    ).on('fail', (error) =>
+    ).on('fail', (error) ->
       job.emit 'error', error
     )
 
   jobs: (callback) ->
-    @get('/jobs').on 'complete', (jobs) ->
+    rest.get('/jobs').on 'complete', (jobs) ->
       callback(jobs)
 
 
