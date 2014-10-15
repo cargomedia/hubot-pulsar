@@ -17,7 +17,21 @@ class PulsarClient extends RestlerService
     @pulsarWebsocket.addJob(job)
 
   runJob: (job) ->
-    job.run(@)
+    @.post("/#{job.app}/#{job.env}",
+      data:
+        task: job.task
+    ).on('complete', (jobData) =>
+      if jobData.id
+        job.setData(jobData)
+        @.addJob(job)
+        job.emit 'create'
+      else
+        job.emit 'error', 'Got empty job id. Job was not created.'
+    ).on('error', (error) =>
+      job.emit 'error', error
+    ).on('fail', (error) =>
+      job.emit 'error', error
+    )
 
   jobs: (callback) ->
     @get('/jobs').on 'complete', (jobs) ->
