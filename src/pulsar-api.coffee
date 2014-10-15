@@ -9,12 +9,8 @@ class PulsarApi
 
   constructor: ()->
     pulsarApiConfig = config.pulsarApi
-
-    clientDefaultConfig = _.pick(pulsarApiConfig, 'url', 'token')
-    @_clientDefault = new PulsarApiClient(clientDefaultConfig.url, clientDefaultConfig.authToken)
-
+    @_clientDefault = new PulsarApiClient(pulsarApiConfig.url, pulsarApiConfig.authToken)
     _.each pulsarApiConfig.auxiliary, (clientConfig, key) ->
-      clientConfig = _.defaults({}, clientConfig, clientDefaultConfig)
       _clientMap[key] = new PulsarApiClient(clientConfig.url, clientConfig.authToken)
 
   getClientDefault: () ->
