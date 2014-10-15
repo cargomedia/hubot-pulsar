@@ -1,5 +1,3 @@
-pulsarApi = require('./pulsar-api')
-rest = require('restler')
 _ = require('underscore')
 {EventEmitter} = require('events')
 

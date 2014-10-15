@@ -83,7 +83,7 @@ module.exports = (robot) ->
     isYes = answer.charAt(0) == 'y' || answer.charAt(0) == 'o'
     if(isYes)
       job = jobConfirmationList.get(chat)
-      pulsarApi.run(job)
+      pulsarApi.runJob(job)
       chat.send job + ' in progress'
     else
       jobConfirmationList.remove(chat)

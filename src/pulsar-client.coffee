@@ -1,4 +1,5 @@
 _ = require('underscore')
+JobChangeListener = require('./job-change-listener')
 RestlerService = require('restler').Service
 
 class PulsarClient extends RestlerService
@@ -10,14 +11,17 @@ class PulsarClient extends RestlerService
       defaults.username = token
       defaults.password = 'x-oauth-basic'
     super(defaults)
+    @jobChangeListener = new JobChangeListener(url, token)
+
+  addJob: (job) ->
+    @jobChangeListener.addJob(job)
 
   runJob: (job) ->
-    job.run(this)
+    job.run(@)
 
   jobs: (callback) ->
-    @get('/jobs')
-    .on 'complete', (jobs) ->
-        callback(_.toArray(jobs))
+    @get('/jobs').on 'complete', (jobs) ->
+      callback(jobs)
 
 
 module.exports = PulsarClient

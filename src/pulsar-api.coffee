@@ -1,6 +1,5 @@
 _ = require('underscore')
 config = require('./config')
-rest = require('restler')
 async = require('async')
 PulsarClient = require('./pulsar-client')
 
@@ -39,7 +38,7 @@ class PulsarApi
     getClientJobs = (client, callback) ->
       client.jobs(callback)
 
-    async.map clientList, getClientJobs (err, results) ->
+    async.map clientList, getClientJobs, (results) ->
       concatenator = (all, items) ->
         all.concat items
       jobs = _.reduce(results, concatenator, [])
