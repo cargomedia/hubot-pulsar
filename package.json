@@ -1,38 +1,34 @@
 {
-	"name": "hubot-pulsar",
-	"description": "Hubot script to deploy via Pulsar REST API",
-	"version": "0.1.0",
-	"author": "Cargomedia",
-	"license": "MIT",
-
-	"keywords": [
-		"hubot", "hubot-scripts", "hubot-pulsar", "pulsar"
-	],
-
-	"repository": {
-		"type": "git",
-		"url": "git@github.com:cargomedia/hubot-pulsar.git"
-	},
-
-	"bugs": {
-		"url": "https://github.com/cargomedia/hubot-pulsar/issues"
-	},
-
-	"dependencies": {
-		"coffee-script": "~1.6",
-		"restler": ">=3.1.0",
-		"node-sockjs-client": "~1.0.7",
-		"underscore": ">=1.5.2",
+  "name": "hubot-pulsar",
+  "description": "Hubot script to deploy via Pulsar REST API",
+  "version": "0.1.0",
+  "author": "Cargomedia",
+  "license": "MIT",
+  "keywords": [
+    "hubot",
+    "hubot-scripts",
+    "hubot-pulsar",
+    "pulsar"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:cargomedia/hubot-pulsar.git"
+  },
+  "bugs": {
+    "url": "https://github.com/cargomedia/hubot-pulsar/issues"
+  },
+  "dependencies": {
+    "coffee-script": "~1.6",
+    "restler": ">=3.1.0",
+    "node-sockjs-client": "~1.0.7",
+    "underscore": ">=1.5.2",
     "async": "~0.9.0"
-	},
-
-	"devDependencies": {
-		"mocha": "*",
-		"chai": "*",
-		"sinon-chai": "*",
-		"sinon": "*"
-	},
-
-	"main": "./src/index"
-
+  },
+  "devDependencies": {
+    "mocha": "*",
+    "chai": "*",
+    "sinon-chai": "*",
+    "sinon": "*"
+  },
+  "main": "./src/index"
 }
