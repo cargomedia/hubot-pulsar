@@ -1,16 +1,13 @@
-restler = require('restler')
+RestlerService = require('restler').Service
 
-class PulsarApiRest
+class PulsarApiRest extends RestlerService
 
   constructor: (url, token) ->
-    restService = restler.service((url, token) ->
-      if token
-        @defaults.username = token
-        @defaults.password = 'x-oauth-basic'
-      return
-    ,
-      baseURL: url
-    )
-    return new restService(url, token)
+    defaults = {}
+    defaults.baseURL = url
+    if token
+      defaults.username = token
+      defaults.password = 'x-oauth-basic'
+    super(defaults)
 
 module.exports = PulsarApiRest
