@@ -2,7 +2,7 @@ _ = require('underscore')
 PulsarApiRest = require('./pulsar-api-rest')
 PulsarApiWebsocket = require('./pulsar-api-websocket')
 
-class PulsarClient
+class PulsarApiClient
 
   rest = null
   websocket = null
@@ -33,4 +33,4 @@ class PulsarClient
       callback(jobs)
 
 
-module.exports = PulsarClient
+module.exports = PulsarApiClient
