@@ -7,11 +7,12 @@
 
 _ = require('underscore')
 config = require('./config')
-pulsarApi = require('./pulsar-api')
-pulsarJobConfirmList = require('./pulsar-job-confirm-list.coffee')
-PulsarJob = require('./pulsar-job')
+PulsarApiClient = require('pulsar-rest-api-client-node')
+pulsarJobConfirmList = require('./pulsar-job-confirm-list')
+PulsarJob = require('../node_modules/pulsar-rest-api-client-node/src/job')
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'
+pulsarApi = new PulsarApiClient(config.pulsarApi)
 
 module.exports = (robot) ->
   isAuthorized = (chat)->
