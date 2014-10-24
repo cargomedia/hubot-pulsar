@@ -9,7 +9,6 @@ _ = require('underscore')
 config = require('./config')
 PulsarApiClient = require('pulsar-rest-api-client-node')
 pulsarJobConfirmList = require('./pulsar-job-confirm-list')
-PulsarJob = require('../node_modules/pulsar-rest-api-client-node/src/job')
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'
 pulsarApi = new PulsarApiClient(config.pulsarApi)
@@ -30,11 +29,11 @@ module.exports = (robot) ->
     env = chat.match[3]
     isVerbose = chat.match[1] == '-v'
 
-    pending = new PulsarJob(app, env, 'deploy:pending')
+    pending = pulsarApi.createJob(app, env, 'deploy:pending')
     pending.on('finish',()->
       chat.send @data.output
       return if(@data.status != 'FINISHED')
-      deploy = new PulsarJob(app, env, 'deploy')
+      deploy = pulsarApi.createJob(app, env, 'deploy')
       deploy.on('create',() ->
         chat.send "Job was created: #{@}. More info here #{@data.url}"
       ).on('finish',() ->
@@ -55,7 +54,7 @@ module.exports = (robot) ->
 
   robot.respond /deploy pending ([^\s]+) ([^\s]+)$/i, (chat) ->
     return unless isAuthorized(chat)
-    job = new PulsarJob(chat.match[1], chat.match[2], 'deploy:pending')
+    job = pulsarApi.createJob(chat.match[1], chat.match[2], 'deploy:pending')
     job.on('change',(output) ->
       chat.send output
     ).on('error', (error)->
