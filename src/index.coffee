@@ -31,13 +31,13 @@ module.exports = (robot) ->
     isVerbose = chat.match[1] == '-v'
 
     pending = pulsarApi.createJob(app, env, 'deploy:pending')
-    pending.on('finish',()->
+    pending.on('close',()->
       chat.send @data.output
       return if(@data.status != 'FINISHED')
       deploy = pulsarApi.createJob(app, env, 'deploy')
       deploy.on('create',() ->
         chat.send "Job was created: #{@}. More info here #{@data.url}"
-      ).on('finish',() ->
+      ).on('close',() ->
         chat.send "#{@} finished with status: #{@data.status}. More details here #{@data.url}"
       ).on('error', () ->
         chat.send "#{@} failed due to #{JSON.stringify(error)}"
