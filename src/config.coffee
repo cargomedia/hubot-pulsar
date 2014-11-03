@@ -2,8 +2,7 @@ _ = require('underscore')
 fs = require('fs')
 
 class Config
-  constructor: () ->
-    filePath = Config.findConfig()
+  constructor: (filePath) ->
     data = @parse(filePath)
     @validate(data)
     return Object.freeze(data)
@@ -26,5 +25,4 @@ class Config
     return __dirname + '/../config.json'
 
 
-config = new Config()
-module.exports = config
+module.exports = Config

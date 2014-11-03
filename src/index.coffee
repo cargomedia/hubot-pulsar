@@ -6,7 +6,8 @@
 #   hubot deploy <application> <environment> - Deploy application
 
 _ = require('underscore')
-config = require('./config')
+Config = require('./config')
+config = new Config(Config.findConfig())
 PulsarApiClient = require('pulsar-rest-api-client-node')
 pulsarJobConfirmList = require('./pulsar-job-confirm-list')
 
