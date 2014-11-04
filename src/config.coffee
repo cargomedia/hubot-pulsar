@@ -16,7 +16,7 @@ class Config
     if(!pulsarApi)
       throw new Error('Define `pulsarApi` config options')
 
-  @findConfig: () ->
+  @findConfigPath: () ->
     if(process.env.HUBOT_PULSAR_CONFIG)
       return process.env.HUBOT_PULSAR_CONFIG
     hubotConfPath = './pulsar.config.json'

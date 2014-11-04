@@ -6,11 +6,11 @@
 #   hubot deploy <application> <environment> - Deploy application
 
 _ = require('underscore')
-Config = require('./config')
-config = new Config(Config.findConfig())
 PulsarApiClient = require('pulsar-rest-api-client-node')
 pulsarJobConfirmList = require('./pulsar-job-confirm-list')
+Config = require('./config')
 
+config = new Config(Config.findConfigPath())
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'
 pulsarApi = new PulsarApiClient(config.pulsarApi)
 
