@@ -19,14 +19,10 @@ Install it as a usual [hubot script](https://github.com/github/hubot/tree/master
 ### Config format
 ```json
 {
-  "pulsarApi": {
-    "url": "",
-    "authToken": ""
-  },
+  "pulsarApi": {},
   "hipchatRoles": ""
 }
 ```
 
-`pulsarApi.url`: String. Required. Url of Pulsar REST API.
-`pulsarApi.authToken`: String. Optional. Authentication token for Pulsar REST API if it requires authentication. Details [here](https://github.com/cargomedia/pulsar-rest-api#authentication).
+`pulsarApi`: Object. Required. It describes the configuration for [pulsar-rest-api-client-node](https://github.com/cargomedia/pulsar-rest-api-client-node).
 `hipchatRoles`: String or Array of Strings. Optional. Hipchat user roles that are allowed to communicate with the hubot.

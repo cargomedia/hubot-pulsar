@@ -1,4 +1,4 @@
-class JobConfirmationList
+class PulsarJobConfirmList
 
   jobList = {}
 
@@ -19,6 +19,4 @@ class JobConfirmationList
     chat.send jobList[user] + ' removed from the execution'
     delete jobList[user]
 
-jobConfirmationList = new JobConfirmationList
-
-module.exports = jobConfirmationList
+module.exports = new PulsarJobConfirmList

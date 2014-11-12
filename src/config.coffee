@@ -3,12 +3,20 @@ fs = require('fs')
 
 class Config
   constructor: (filePath) ->
-    filePath = @findConfig()
     data = @parse(filePath)
     @validate(data)
     return Object.freeze(data)
 
-  findConfig: () ->
+  parse: (filePath) ->
+    content = fs.readFileSync(filePath, {encoding: 'utf8'})
+    return JSON.parse(content)
+
+  validate: (data) ->
+    pulsarApi = data.pulsarApi
+    if(!pulsarApi)
+      throw new Error('Define `pulsarApi` config options')
+
+  @findConfigPath: () ->
     if(process.env.HUBOT_PULSAR_CONFIG)
       return process.env.HUBOT_PULSAR_CONFIG
     hubotConfPath = './pulsar.config.json'
@@ -16,12 +24,5 @@ class Config
       return hubotConfPath
     return __dirname + '/../config.json'
 
-  parse: (filePath) ->
-    content = fs.readFileSync(filePath, {encoding: 'utf8'})
-    return JSON.parse(content)
 
-  validate: (data) ->
-    throw new Error('Specify pulsar-rest-api url `pulsarApi.url`') unless data.pulsarApi.url
-
-config = new Config(__dirname + '/../config.json')
-module.exports = config
+module.exports = Config

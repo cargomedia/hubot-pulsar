@@ -6,12 +6,13 @@
 #   hubot deploy <application> <environment> - Deploy application
 
 _ = require('underscore')
-config = require('./config')
-pulsarApi = require('./pulsar-api')
-jobConfirmationList = require('./job-confirmation-list.coffee')
-PulsarJob = require('./pulsar-job')
+PulsarApiClient = require('pulsar-rest-api-client-node')
+pulsarJobConfirmList = require('./pulsar-job-confirm-list')
+Config = require('./config')
 
+config = new Config(Config.findConfigPath())
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'
+pulsarApi = new PulsarApiClient(config.pulsarApi)
 
 module.exports = (robot) ->
   isAuthorized = (chat)->
@@ -22,20 +23,21 @@ module.exports = (robot) ->
     chat.finish()
     return false
 
+
   robot.respond /deploy (-v|)\s?([^\s]+) ([^\s]+)$/i, (chat) ->
     return unless isAuthorized(chat)
-    application = chat.match[2]
-    environment = chat.match[3]
+    app = chat.match[2]
+    env = chat.match[3]
     isVerbose = chat.match[1] == '-v'
 
-    pending = new PulsarJob(application, environment, 'deploy:pending')
-    pending.on('finish', ()->
+    pending = pulsarApi.createJob(app, env, 'deploy:pending')
+    pending.on('close',()->
       chat.send @data.output
       return if(@data.status != 'FINISHED')
-      deploy = new PulsarJob(application, environment, 'deploy')
-      deploy.on('create', () ->
+      deploy = pulsarApi.createJob(app, env, 'deploy')
+      deploy.on('create',() ->
         chat.send "Job was created: #{@}. More info here #{@data.url}"
-      ).on('finish', () ->
+      ).on('close',() ->
         chat.send "#{@} finished with status: #{@data.status}. More details here #{@data.url}"
       ).on('error', () ->
         chat.send "#{@} failed due to #{JSON.stringify(error)}"
@@ -44,29 +46,35 @@ module.exports = (robot) ->
         deploy.on('change', (output)->
           chat.send output
         )
-      jobConfirmationList.add(chat, deploy)
+      pulsarJobConfirmList.add(chat, deploy)
     ).on('error', (error)->
       chat.send "#{@} failed due to #{JSON.stringify(error)}"
     )
-    pending.run()
+    pulsarApi.runJob(pending)
     chat.send pending + ' in progress'
 
   robot.respond /deploy pending ([^\s]+) ([^\s]+)$/i, (chat) ->
     return unless isAuthorized(chat)
-    job = new PulsarJob(chat.match[1], chat.match[2], 'deploy:pending')
-    job.on('change', (output) ->
+    job = pulsarApi.createJob(chat.match[1], chat.match[2], 'deploy:pending')
+    job.on('change',(output) ->
       chat.send output
     ).on('error', (error)->
       chat.send "#{@} failed due to #{JSON.stringify(error)}"
     )
-    job.run()
+    pulsarApi.runJob(job)
 
-  robot.respond /jobs/i, (chat) ->
+  robot.respond /(?:([^\s]+) ([^\s]+) )?jobs/i, (chat) ->
     return unless isAuthorized(chat)
-    pulsarApi.get('/jobs')
-    .on 'complete', (response) ->
+    app = chat.match[1]
+    env = chat.match[2]
+
+    pulsarApi.jobs (jobs) ->
+      jobs = _.filter jobs, (job) ->
+        return false if app && app != job.app
+        return false if env && env != job.env
+        return true
       message = 'Jobs:'
-      _.each response, (job) ->
+      _.each jobs, (job) ->
         message += "\n #{job.status} job #{job.task} #{job.app} #{job.env} with ID #{job.id}"
       chat.send message
 
@@ -75,8 +83,8 @@ module.exports = (robot) ->
     answer = chat.match[1]
     isYes = answer.charAt(0) == 'y' || answer.charAt(0) == 'o'
     if(isYes)
-      job = jobConfirmationList.get(chat)
-      job.run()
+      job = pulsarJobConfirmList.get(chat)
+      pulsarApi.runJob(job)
       chat.send job + ' in progress'
     else
-      jobConfirmationList.remove(chat)
+      pulsarJobConfirmList.remove(chat)
