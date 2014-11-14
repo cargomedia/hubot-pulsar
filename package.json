@@ -19,7 +19,7 @@
   },
   "dependencies": {
     "coffee-script": "~1.6",
-    "pulsar-rest-api-client-node": "~0.0.1",
+    "pulsar-rest-api-client-node": "~0.1",
     "underscore": ">=1.5.2"
   },
   "main": "./src/index"
