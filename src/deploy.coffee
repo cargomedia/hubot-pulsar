@@ -31,7 +31,9 @@ module.exports = (robot) ->
     pending = pulsarApi.createJob(app, env, 'deploy:pending')
     pending.on('close', ()->
       chat.send "Pending changes for #{@app} #{@env}: #{@data.stdout}"
-      return if(@data.status != 'FINISHED')
+      if(@data.status != 'FINISHED')
+        @.emit('error', new Error("#{@} finished with incorrect status #{data.status}"))
+        return
       chat.send "Please confirm that you still want to #{deploy}.(y/n/ok)"
     ).on('error', (error)->
       deployMonitor.removeDeploy()
