@@ -9,11 +9,10 @@ _ = require('underscore')
 pulsarJobConfirmList = require('./pulsar-job-confirm-list')
 
 module.exports = (robot) ->
-  robot.respond /deploy (-v|)\s?([^\s]+) ([^\s]+)$/i, (chat) ->
+  robot.respond /deploy ([^\s]+) ([^\s]+)$/i, (chat) ->
     return unless robot.isAuthorized(chat)
-    app = chat.match[2]
-    env = chat.match[3]
-    isVerbose = chat.match[1] == '-v'
+    app = chat.match[1]
+    env = chat.match[2]
 
     pending = pulsarApi.createJob(app, env, 'deploy:pending')
     pending.on('close', ()->
@@ -27,10 +26,6 @@ module.exports = (robot) ->
       ).on('error', () ->
         chat.send "#{@} failed due to #{JSON.stringify(error)}"
       )
-      if isVerbose
-        deploy.on('change', (output)->
-          chat.send output
-        )
       pulsarJobConfirmList.add(chat, deploy)
     ).on('error', (error)->
       chat.send "#{@} failed due to #{JSON.stringify(error)}"
