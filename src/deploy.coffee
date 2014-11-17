@@ -19,7 +19,7 @@ module.exports = (robot) ->
     env = chat.match[2]
 
     deploy = pulsarApi.createJob(app, env, 'deploy')
-    deployMonitor.setDeploy(deploy)
+    deployMonitor.setDeploy(deploy, chat)
     deploy.on('create', () ->
       chat.send "Job was created: #{@}. More info here #{@data.url}"
     ).on('close', () ->
