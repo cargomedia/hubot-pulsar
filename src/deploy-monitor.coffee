@@ -5,7 +5,7 @@ class DeployMonitor
   monitorInterval = null
   monitorPeriodMs = 10000
   deployHangTimeMs = 0
-  lastDeployStdout = null
+  lastDeployOutput = null
 
   setDeploy: (deployJob, chatArg)->
     deploy = deployJob
@@ -31,16 +31,16 @@ class DeployMonitor
     deploy = null
 
   startMonitoring: ()->
-    if(deploy.data.stdout)
-      lastDeployStdout = deploy.data.stdout
+    if(deploy.data.output)
+      lastDeployOutput = deploy.data.output
     else
-      lastDeployStdout = ''
+      lastDeployOutput = ''
     monitorInterval = setInterval(()=>
-      if(lastDeployStdout.length == deploy.data.stdout.length)
+      if(lastDeployOutput.length == deploy.data.output.length)
         deployHangTimeMs += monitorPeriodMs
-        chat.send "Running #{Math.round(deployHangTimeMs / 1000)} secs: #{@_getLastText(lastDeployStdout)}"
+        chat.send "Running #{Math.round(deployHangTimeMs / 1000)} secs: #{@_getLastText(lastDeployOutput)}"
       else
-        lastDeployStdout = deploy.data.stdout
+        lastDeployOutput = deploy.data.output
         deployHangTimeMs = 0
     , monitorPeriodMs)
 
