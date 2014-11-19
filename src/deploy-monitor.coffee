@@ -1,17 +1,17 @@
+_ = require('underscore')
+
 class DeployMonitor
 
   deploy = null
   chat = null
-  monitorInterval = null
-  monitorPeriodMs = 10000
-  deployHangTimeMs = 0
-  lastDeployOutput = null
+  timeout = 10000
+  currentTimeout = 0
 
   setDeploy: (deployJob, chatArg)->
     deploy = deployJob
     chat = chatArg
-    deploy.on('create', ()=>
-      @.startMonitoring()
+    deploy.on('change', ()=>
+      resetTimeoutMonitor()
     )
     deploy.on('close', ()=>
       @.removeDeploy()
@@ -27,27 +27,23 @@ class DeployMonitor
     return deploy
 
   removeDeploy: ()->
-    @.stopMonitoring()
     deploy = null
 
-  startMonitoring: ()->
-    if(deploy.data.output)
-      lastDeployOutput = deploy.data.output
-    else
-      lastDeployOutput = ''
-    monitorInterval = setInterval(()=>
-      if(lastDeployOutput.length == deploy.data.output.length)
-        deployHangTimeMs += monitorPeriodMs
-        chat.send "Running #{Math.round(deployHangTimeMs / 1000)} secs: #{@_getLastText(lastDeployOutput)}"
-      else
-        lastDeployOutput = deploy.data.output
-        deployHangTimeMs = 0
-    , monitorPeriodMs)
+  timeoutMonitor = _.debounce(()->
+    if null == deploy
+      return
+    currentTimeout += timeout
+    chat.send "Running #{currentTimeout}ms: #{getLastText(deploy.data.output)}"
+    timeoutMonitor()
+  , timeout)
 
-  stopMonitoring: ()->
-    clearInterval(monitorInterval)
+  resetTimeoutMonitor = ()->
+    if currentTimeout > 0
+      chat.send "Continuing..."
+    currentTimeout = 0
+    timeoutMonitor()
 
-  _getLastText: (text)->
+  getLastText = (text)->
     textLines = text.split(/\r?\n/)
     n = textLines.length - 1
     while(!textLines[n].trim() && n > 0)
