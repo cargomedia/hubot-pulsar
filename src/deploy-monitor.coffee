@@ -21,7 +21,7 @@ class DeployMonitor
     )
 
   hasDeploy: ()->
-    return !!deploy
+    return null != deploy
 
   getDeploy: ()->
     return deploy
