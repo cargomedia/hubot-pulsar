@@ -30,7 +30,7 @@ module.exports = (robot) ->
 
     pending = pulsarApi.createJob(app, env, 'deploy:pending')
     pending.on('close', ()->
-      chat.send "Pending changes for #{@app} #{@env}: #{@data.stdout}"
+      chat.send "Pending changes for #{@app} #{@env}:\n#{@data.stdout}"
       if(@data.status != 'FINISHED')
         @.emit('error', new Error("#{@} finished with incorrect status #{data.status}"))
         return
@@ -46,7 +46,7 @@ module.exports = (robot) ->
     return unless robot.isAuthorized(chat)
     job = pulsarApi.createJob(chat.match[1], chat.match[2], 'deploy:pending')
     job.on('close', () ->
-      chat.send "Pending changes for #{@app} #{@env}: #{@data.stdout}"
+      chat.send "Pending changes for #{@app} #{@env}:\n#{@data.stdout}"
     ).on('error', (error)->
       chat.send "#{@} failed due to #{JSON.stringify(error)}"
     )
