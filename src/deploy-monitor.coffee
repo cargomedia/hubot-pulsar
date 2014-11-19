@@ -53,4 +53,4 @@ class DeployMonitor
     return textLines[n]
 
 
-module.exports = new DeployMonitor
+module.exports = DeployMonitor

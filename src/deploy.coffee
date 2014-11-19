@@ -6,7 +6,8 @@
 #   hubot deploy <application> <environment> - Deploy application
 
 _ = require('underscore')
-deployMonitor = require('./deploy-monitor')
+DeployMonitor = require('./deploy-monitor')
+deployMonitor = new DeployMonitor()
 
 module.exports = (robot) ->
   robot.respond /deploy ([^\s]+) ([^\s]+)$/i, (chat) ->
