@@ -14,6 +14,7 @@ class DeployMonitor
     @_chat = chat
     @_deploy.on('change', ()=>
       @_resetTimeoutMonitor()
+      @_timeoutMonitor()
     )
     @_deploy.on('close', ()=>
       @.removeDeploy()
@@ -43,7 +44,6 @@ class DeployMonitor
     if @_currentTimeout > 0
       @_chat.send "Continuing..."
     @_currentTimeout = 0
-    @_timeoutMonitor()
 
   getLastText = (text)->
     textLines = text.split(/\r?\n/)
