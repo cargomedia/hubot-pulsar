@@ -1,44 +1,44 @@
 _ = require('underscore')
 
-class DeployMonitor
+class DeploymentMonitor
 
   timeout = 10000
 
   constructor: ()->
-    @_deploy = null
+    @_deployment = null
     @_chat = null
     @_currentTimeout = 0
 
-  setDeploy: (deploy, chat)->
-    @_deploy = deploy
+  setDeployment: (deployment, chat)->
+    @_deployment = deployment
     @_chat = chat
-    @_deploy.on('change', ()=>
+    @_deployment.on('change', ()=>
       @_resetTimeoutMonitor()
       @_timeoutMonitor()
     )
-    @_deploy.on('close', ()=>
-      @.removeDeploy()
+    @_deployment.on('close', ()=>
+      @.removeDeployment()
     )
-    @_deploy.on('error', ()=>
-      @.removeDeploy()
+    @_deployment.on('error', ()=>
+      @.removeDeployment()
     )
 
-  hasDeploy: ()->
-    return null != @_deploy
+  hasDeployment: ()->
+    return null != @_deployment
 
-  getDeploy: ()->
-    return @_deploy
+  getDeployment: ()->
+    return @_deployment
 
-  removeDeploy: ()->
-    @_deploy.removeAllEventListeners()
-    @_deploy = null
+  removeDeployment: ()->
+    @_deployment.removeAllEventListeners()
+    @_deployment = null
     @_chat = null
 
   _timeoutMonitor: _.debounce(()->
-    if !@.hasDeploy()
+    if !@.hasDeployment()
       return
     @_currentTimeout += timeout
-    @_chat.send "Running #{@_currentTimeout}ms: #{getLastText(@_deploy.data.output)}"
+    @_chat.send "Running #{@_currentTimeout}ms: #{getLastText(@_deployment.data.output)}"
     @_timeoutMonitor()
   , timeout)
 
@@ -55,4 +55,4 @@ class DeployMonitor
     return textLines[n]
 
 
-module.exports = DeployMonitor
+module.exports = DeploymentMonitor

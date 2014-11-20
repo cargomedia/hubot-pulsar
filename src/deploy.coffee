@@ -6,22 +6,21 @@
 #   hubot deploy <application> <environment> - Deploy application
 
 _ = require('underscore')
-DeployMonitor = require('./deploy-monitor')
-deployMonitor = new DeployMonitor()
+DeploymentMonitor = require('./deployment-monitor')
+deploymentMonitor = new DeploymentMonitor()
 
 module.exports = (robot) ->
   robot.respond /deploy ([^\s]+) ([^\s]+)$/i, (chat) ->
     return unless robot.isAuthorized(chat)
-    if(deployMonitor.hasDeploy())
-      deployInProgress = deployMonitor.getDeploy()
-      chat.send "Deploy can not be started because #{deployInProgress} is in progress"
+    if(deploymentMonitor.hasDeployment())
+      chat.send "Deployment can not be started because #{deploymentMonitor.getDeployment()} is in progress"
       return
     app = chat.match[1]
     env = chat.match[2]
 
-    deploy = pulsarApi.createJob(app, env, 'deploy')
-    deployMonitor.setDeploy(deploy, chat)
-    deploy.on('create', () ->
+    deployment = pulsarApi.createJob(app, env, 'deploy')
+    deploymentMonitor.setDeployment(deployment, chat)
+    deployment.on('create', () ->
       chat.send "Job was created: #{@}. More info here #{@data.url}"
     ).on('close', () ->
       chat.send "#{@} finished with status: #{@data.status}. More details here #{@data.url}"
@@ -35,9 +34,9 @@ module.exports = (robot) ->
       if(@data.status != 'FINISHED')
         @.emit('error', new Error("#{@} finished with incorrect status #{data.status}"))
         return
-      chat.send "Please confirm that you still want to #{deploy}.(y/n/ok)"
+      chat.send "Please confirm that you still want to #{deployment}.(y/n/ok)"
     ).on('error', (error)->
-      deployMonitor.removeDeploy()
+      deploymentMonitor.removeDeployment()
       chat.send "#{@} failed due to #{JSON.stringify(error)}"
     )
     pulsarApi.runJob(pending)
@@ -55,15 +54,15 @@ module.exports = (robot) ->
 
   robot.respond /((?:y(?:es)?)|(?:no?)|(?:ok))$/i, (chat) ->
     return unless robot.isAuthorized(chat)
-    if(!deployMonitor.hasDeploy())
-      chat.send 'No deploy to confirm'
+    if(!deploymentMonitor.hasDeployment())
+      chat.send 'No deployment to confirm'
       return
     answer = chat.match[1]
     isYes = answer.charAt(0) == 'y' || answer.charAt(0) == 'o'
-    deploy = deployMonitor.getDeploy()
+    deployment = deploymentMonitor.getDeployment()
     if(isYes)
-      pulsarApi.runJob(deploy)
-      chat.send deploy + ' in progress'
+      pulsarApi.runJob(deployment)
+      chat.send deployment + ' in progress'
     else
-      chat.send deploy + ' removed'
-      deployMonitor.removeDeploy()
+      chat.send deployment + ' removed'
+      deploymentMonitor.removeDeployment()
