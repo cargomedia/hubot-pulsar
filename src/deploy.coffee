@@ -34,7 +34,7 @@ module.exports = (robot) ->
       if(@data.status != 'FINISHED')
         @.emit('error', new Error("#{@} finished with incorrect status #{data.status}"))
         return
-      chat.send "Please confirm that you still want to #{deployment}.(y/n/ok)"
+      chat.send "Please confirm that you still want to #{deployment}.(confirm deploy/cancel deploy)"
     ).on('error', (error)->
       deploymentMonitor.removeDeployment()
       chat.send "#{@} failed due to #{JSON.stringify(error)}"
@@ -52,17 +52,20 @@ module.exports = (robot) ->
     )
     pulsarApi.runJob(job)
 
-  robot.respond /((?:y(?:es)?)|(?:no?)|(?:ok))$/i, (chat) ->
+  robot.respond /confirm deploy$/i, (chat) ->
     return unless robot.isAuthorized(chat)
     if(!deploymentMonitor.hasDeployment())
       chat.send 'No deployment to confirm'
       return
-    answer = chat.match[1]
-    isYes = answer.charAt(0) == 'y' || answer.charAt(0) == 'o'
     deployment = deploymentMonitor.getDeployment()
-    if(isYes)
-      pulsarApi.runJob(deployment)
-      chat.send deployment + ' in progress'
-    else
-      chat.send deployment + ' removed'
-      deploymentMonitor.removeDeployment()
+    pulsarApi.runJob(deployment)
+    chat.send deployment + ' in progress'
+
+  robot.respond /cancel deploy$/i, (chat) ->
+    return unless robot.isAuthorized(chat)
+    if(!deploymentMonitor.hasDeployment())
+      chat.send 'No deployment to cancel'
+      return
+    deployment = deploymentMonitor.getDeployment()
+    chat.send deployment + ' cancelled'
+    deploymentMonitor.removeDeployment()
