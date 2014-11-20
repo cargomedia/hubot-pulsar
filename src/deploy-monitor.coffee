@@ -30,7 +30,9 @@ class DeployMonitor
     return @_deploy
 
   removeDeploy: ()->
+    @_deploy.removeAllEventListeners()
     @_deploy = null
+    @_chat = null
 
   _timeoutMonitor: _.debounce(()->
     if !@.hasDeploy()
