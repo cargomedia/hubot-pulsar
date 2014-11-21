@@ -66,6 +66,5 @@ module.exports = (robot) ->
     if(!deploymentMonitor.hasDeployment())
       chat.send 'No deployment to cancel'
       return
-    deployment = deploymentMonitor.getDeployment()
-    chat.send deployment + ' cancelled'
+    chat.send deploymentMonitor.getDeployment() + ' cancelled'
     deploymentMonitor.removeDeployment()
