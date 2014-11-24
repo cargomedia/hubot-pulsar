@@ -12,15 +12,17 @@ class DeploymentMonitor
   setDeployment: (deployment, chat)->
     @_deployment = deployment
     @_chat = chat
-    @_deployment.on('change', ()=>
-      @_resetTimeoutMonitor()
-      @_timeoutMonitor()
-    )
-    @_deployment.on('close', ()=>
-      @.removeDeployment()
-    )
-    @_deployment.on('error', ()=>
-      @.removeDeployment()
+    @_eventListeners = {
+      'change': ()=>
+        @_resetTimeoutMonitor()
+        @_timeoutMonitor()
+      'close': ()=>
+        @.removeDeployment()
+      'error': ()=>
+        @.removeDeployment()
+    }
+    _.each(@_eventListeners, (listener, event)=>
+      @_deployment.on(event, listener)
     )
 
   hasDeployment: ()->
@@ -30,7 +32,9 @@ class DeploymentMonitor
     return @_deployment
 
   removeDeployment: ()->
-    @_deployment.removeAllEventListeners()
+    _.each(@_eventListeners, (listener, event)=>
+      @_deployment.removeListener(event, listener)
+    )
     @_deployment = null
     @_chat = null
 
