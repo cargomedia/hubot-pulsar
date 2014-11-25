@@ -8,10 +8,6 @@ class DeploymentMonitor
     @_deployment = null
     @_chat = null
     @_currentTimeout = 0
-
-  setDeployment: (deployment, chat)->
-    @_deployment = deployment
-    @_chat = chat
     @_eventListeners = {
       'change': ()=>
         @_resetTimeoutMonitor()
@@ -21,6 +17,11 @@ class DeploymentMonitor
       'error': ()=>
         @.removeDeployment()
     }
+
+  setDeployment: (deployment, chat)->
+    @removeDeployment() if @hasDeployment()
+    @_deployment = deployment
+    @_chat = chat
     _.each(@_eventListeners, (listener, event)=>
       @_deployment.on(event, listener)
     )
