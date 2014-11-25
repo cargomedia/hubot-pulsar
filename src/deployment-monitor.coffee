@@ -9,12 +9,12 @@ class DeploymentMonitor
     @_chat = null
     @_currentTimeout = 0
     @_eventListeners = {
-      'change': ()=>
+      change: ()=>
         @_resetTimeout()
         @_monitorTimeout()
-      'close': ()=>
+      close: ()=>
         @.removeDeployment()
-      'error': ()=>
+      error: ()=>
         @.removeDeployment()
     }
 
