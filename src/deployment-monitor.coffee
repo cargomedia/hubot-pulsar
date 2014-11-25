@@ -10,8 +10,8 @@ class DeploymentMonitor
     @_currentTimeout = 0
     @_eventListeners = {
       'change': ()=>
-        @_resetTimeoutMonitor()
-        @_timeoutMonitor()
+        @_resetTimeout()
+        @_monitorTimeout()
       'close': ()=>
         @.removeDeployment()
       'error': ()=>
@@ -39,15 +39,15 @@ class DeploymentMonitor
     @_deployment = null
     @_chat = null
 
-  _timeoutMonitor: _.debounce(()->
+  _monitorTimeout: _.debounce(()->
     if !@.hasDeployment()
       return
     @_currentTimeout += timeout
     @_chat.send "Running #{@_currentTimeout}ms: #{getLastText(@_deployment.data.output)}"
-    @_timeoutMonitor()
+    @_monitorTimeout()
   , timeout)
 
-  _resetTimeoutMonitor: ()->
+  _resetTimeout: ()->
     if @_currentTimeout > 0
       @_chat.send "Continuing..."
     @_currentTimeout = 0
