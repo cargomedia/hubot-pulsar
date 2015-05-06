@@ -10,8 +10,7 @@ This is ["Pulsar REST API service"](https://github.com/cargomedia/pulsar-rest-ap
 ## Installation
 Install it as a usual [hubot script](https://github.com/github/hubot/tree/master/docs#scripting). After that configure it to your needs. For that you need to have a config file. The config file will be searched in the following order:
 * The script will try to get the environment variable `HUBOT_PULSAR_CONFIG`. If this variable exists then it is used as a file path to the config file.
-* If the variable wasn't found then the script will try to locate the file `pulsar.config.json` in the directory of the hubot installation which uses the script. If the `pulsar.config.json` was found then the script will use it.
-* If all the previous steps failed then the script will try to read the file `config.json` in its `src` directory which is probably not what you want.
+* If the variable wasn't found then the script will try to locate the file `pulsar.config.json` in the directory of the hubot installation.
 
 Authorization support is optional, and enabled if the [hubot-auth](https://github.com/hubot-scripts/hubot-auth) script is loaded.
 

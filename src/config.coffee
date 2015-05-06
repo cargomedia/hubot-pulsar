@@ -19,10 +19,7 @@ class Config
   @findConfigPath: () ->
     if(process.env.HUBOT_PULSAR_CONFIG)
       return process.env.HUBOT_PULSAR_CONFIG
-    hubotConfPath = './pulsar.config.json'
-    if(fs.existsSync(hubotConfPath) && fs.statSync(hubotConfPath).isFile())
-      return hubotConfPath
-    return __dirname + '/../config.json'
+    return './pulsar.config.json'
 
 
 module.exports = Config
