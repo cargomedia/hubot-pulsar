@@ -36,18 +36,18 @@ module.exports = (robot) ->
     deployJob = pulsarApi.createJob(app, env, 'deploy')
     deploymentMonitor.setDeployJob(deployJob, chat)
     deployJob.on('create', () ->
-      chat.send "Job was created: #{@}.\nMore info: #{@data.url}"
+      chat.send "Deployment started.\nMore info: #{@data.url}"
     ).on('success', () ->
       chat.send "#{@} finished."
     ).on('error', (error) ->
-      chat.send "#{@} failed with error: #{JSON.stringify(error)}"
+      chat.send "Deployment failed: #{JSON.stringify(error)}"
     )
 
     pendingJob = pulsarApi.createJob(app, env, 'deploy:pending')
     pendingJob.on('success', ()->
       deployJob.taskVariables = revision: @.taskVariables.revision
       chat.send "Pending changes for #{@app} #{@env}:\n#{@data.stdout}"
-      chat.send "Please confirm that you still want to #{deployJob}.\nSay 'CONFIRM DEPLOY' or 'CANCEL DEPLOY'."
+      chat.send "Say 'CONFIRM DEPLOY' or 'CANCEL DEPLOY'."
     ).on('error', (error)->
       deployJob.emit('error', error)
       chat.send "More info: #{@data.url}"
@@ -74,12 +74,12 @@ module.exports = (robot) ->
       return
     deployJob = deploymentMonitor.getDeployJob()
     pulsarApi.runJob(deployJob)
-    chat.send deployJob + ' in progress'
+    chat.send 'Deployment confirmed.'
 
   robot.respond /cancel deploy$/i, (chat) ->
     return unless robot.userHasRole(chat, 'deployer')
     if(!deploymentMonitor.hasDeployJob())
       chat.send 'No deploy job to cancel'
       return
-    chat.send deploymentMonitor.getDeployJob() + ' cancelled'
+    chat.send 'Deployment cancelled.'
     deploymentMonitor.removeDeployJob()
