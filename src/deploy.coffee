@@ -7,7 +7,7 @@
 
 _ = require('underscore')
 
-DeploymentMonitor = require('./deploy/monitor')
+DeploymentMonitor = require('./deployment/monitor')
 deploymentMonitor = new DeploymentMonitor()
 
 module.exports = (robot) ->
