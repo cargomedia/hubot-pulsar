@@ -1,7 +1,5 @@
 [![Build Status](https://travis-ci.org/cargomedia/hubot-pulsar.png?branch=master)](https://travis-ci.org/cargomedia/hubot-pulsar)
 
-(unstable, currently in development)
-
 hubot-pulsar
 ============
 
@@ -15,14 +13,17 @@ Install it as a usual [hubot script](https://github.com/github/hubot/tree/master
 * If the variable wasn't found then the script will try to locate the file `pulsar.config.json` in the directory of the hubot installation which uses the script. If the `pulsar.config.json` was found then the script will use it.
 * If all the previous steps failed then the script will try to read the file `config.json` in its `src` directory which is probably not what you want.
 
+Authorization support is optional, and enabled if the [hubot-auth](https://github.com/hubot-scripts/hubot-auth) script is loaded.
+
 
 ### Config format
 ```json
 {
-  "pulsarApi": {},
-  "hipchatRoles": ""
+  "pulsarApi": {
+    "url": "<pulsar-rest-api-url>",
+    "authToken": "<auth-token>"
+  }
 }
 ```
 
 `pulsarApi`: Object. Required. It describes the configuration for [pulsar-rest-api-client-node](https://github.com/cargomedia/pulsar-rest-api-client-node).
-`hipchatRoles`: String or Array of Strings. Optional. Hipchat user roles that are allowed to communicate with the hubot.

@@ -20,7 +20,8 @@
   "dependencies": {
     "coffee-script": "^1.6.0",
     "pulsar-rest-api-client-node": "^0.3.0",
-    "underscore": "^1.5.2"
+    "underscore": "^1.5.2",
+    "hubot-auth": "^1.2.0"
   },
   "main": "./src/index"
 }

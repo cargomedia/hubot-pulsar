@@ -2,6 +2,5 @@
   "pulsarApi": {
     "url": "https://api.pulsar.local:8001",
     "authToken": ""
-  },
-  "hipchatRoles": "developer"
+  }
 }
