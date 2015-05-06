@@ -14,7 +14,6 @@ Install it as a usual [hubot script](https://github.com/github/hubot/tree/master
 
 Authorization support is optional, and enabled if the [hubot-auth](https://github.com/hubot-scripts/hubot-auth) script is loaded.
 
-
 ### Config format
 ```json
 {
@@ -26,3 +25,7 @@ Authorization support is optional, and enabled if the [hubot-auth](https://githu
 ```
 
 `pulsarApi`: Object. Required. It describes the configuration for [pulsar-rest-api-client-node](https://github.com/cargomedia/pulsar-rest-api-client-node).
+
+## Deploy.coffee
+For deploying applications.
+Everyone with the role `deployer` is allowed to trigger deployments.

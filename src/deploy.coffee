@@ -12,7 +12,6 @@ deploymentMonitor = new DeploymentMonitor()
 
 module.exports = (robot) ->
   robot.respond /deploy pending ([^\s]+) ([^\s]+)$/i, (chat) ->
-    return unless robot.userHasRole(chat, 'developer')
     app = chat.match[1]
     env = chat.match[2]
     chat.send "Getting changes…"
@@ -26,7 +25,7 @@ module.exports = (robot) ->
     pulsarApi.runJob(job)
 
   robot.respond /deploy ([^\s]+) ([^\s]+)$/i, (chat) ->
-    return unless robot.userHasRole(chat, 'sysadmin')
+    return unless robot.userHasRole(chat, 'deployer')
     if(deploymentMonitor.hasDeployJob())
       chat.send "Deploy job can not be started because #{deploymentMonitor.getDeployJob()} is in progress"
       return
@@ -70,7 +69,7 @@ module.exports = (robot) ->
     pulsarApi.runJob(showNextRevisionJob)
 
   robot.respond /confirm deploy$/i, (chat) ->
-    return unless robot.userHasRole(chat, 'sysadmin')
+    return unless robot.userHasRole(chat, 'deployer')
     if(!deploymentMonitor.hasDeployJob())
       chat.send 'No deploy job to confirm'
       return
@@ -79,7 +78,7 @@ module.exports = (robot) ->
     chat.send deployJob + ' in progress'
 
   robot.respond /cancel deploy$/i, (chat) ->
-    return unless robot.userHasRole(chat, 'sysadmin')
+    return unless robot.userHasRole(chat, 'deployer')
     if(!deploymentMonitor.hasDeployJob())
       chat.send 'No deploy job to cancel'
       return
