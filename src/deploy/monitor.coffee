@@ -12,7 +12,7 @@ class DeploymentMonitor
       change: ()=>
         @_resetTimeout()
         @_monitorTimeout()
-      close: ()=>
+      success: ()=>
         @.removeDeployJob()
       error: ()=>
         @.removeDeployJob()

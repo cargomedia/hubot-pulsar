@@ -17,7 +17,7 @@ module.exports = (robot) ->
     chat.send "Getting changes…"
 
     job = pulsarApi.createJob(app, env, 'deploy:pending')
-    job.on('close', () ->
+    job.on('success', () ->
       chat.send "Pending changes for #{@app} #{@env}:\n#{@data.stdout}"
     ).on('error', (error)->
       chat.send "#{@} failed due to #{JSON.stringify(error)}"
@@ -37,26 +37,24 @@ module.exports = (robot) ->
     deploymentMonitor.setDeployJob(deployJob, chat)
     deployJob.on('create', () ->
       chat.send "Job was created: #{@}.\nMore info: #{@data.url}"
-    ).on('close', () ->
-      chat.send "#{@} finished with status: #{@data.status}.\nMore info: #{@data.url}"
+    ).on('success', () ->
+      chat.send "#{@} finished."
     ).on('error', (error) ->
-      chat.send "#{@} failed due to #{JSON.stringify(error)}"
+      chat.send "#{@} failed with error: #{JSON.stringify(error)}"
     )
 
     pendingJob = pulsarApi.createJob(app, env, 'deploy:pending')
-    pendingJob.on('close', ()->
+    pendingJob.on('success', ()->
       deployJob.taskVariables = revision: @.taskVariables.revision
       chat.send "Pending changes for #{@app} #{@env}:\n#{@data.stdout}"
-      if(@data.status != 'FINISHED')
-        @.emit('error', new Error("#{@} finished with incorrect status #{@data.status}"))
-        return
       chat.send "Please confirm that you still want to #{deployJob}.\nSay 'CONFIRM DEPLOY' or 'CANCEL DEPLOY'."
     ).on('error', (error)->
       deployJob.emit('error', error)
+      chat.send "More info: #{@data.url}"
     )
 
     showNextRevisionJob = pulsarApi.createJob(app, env, 'deploy:show_next_revision')
-    showNextRevisionJob.on('close', ()->
+    showNextRevisionJob.on('success', ()->
       if(!@data.stdout || !@data.stdout.trim())
         @.emit('error', new Error("#{@} does not have a revision number."))
         return
@@ -65,6 +63,7 @@ module.exports = (robot) ->
       pulsarApi.runJob(pendingJob)
     ).on('error', (error)->
       deployJob.emit('error', error)
+      chat.send "More info: #{@data.url}"
     )
     pulsarApi.runJob(showNextRevisionJob)
 
