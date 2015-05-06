@@ -7,4 +7,3 @@ global.pulsarApi = new PulsarApiClient(config.pulsarApi)
 
 module.exports = (robot) ->
   require('./helpers')(robot)
-  require('./jobs')(robot)
