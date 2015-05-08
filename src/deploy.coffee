@@ -20,7 +20,8 @@ module.exports = (robot) ->
     job.on('success', () ->
       chat.send "Pending changes for #{@app} #{@env}:\n#{@data.stdout}"
     ).on('error', (error)->
-      chat.send "#{@} failed due to #{JSON.stringify(error)}"
+      chat.send "Pending changes failed: #{JSON.stringify(error)}"
+      chat.send "More info: #{@data.url}"
     )
     pulsarApi.runJob(job)
 
@@ -36,9 +37,9 @@ module.exports = (robot) ->
     deployJob = pulsarApi.createJob(app, env, 'deploy')
     deploymentMonitor.setDeployJob(deployJob, chat)
     deployJob.on('create', () ->
-      chat.send "Deployment started.\nMore info: #{@data.url}"
+      chat.send "Deployment started: #{@data.url}"
     ).on('success', () ->
-      chat.send "#{@} finished."
+      chat.send "Deployment finished."
     ).on('error', (error) ->
       chat.send "Deployment failed: #{JSON.stringify(error)}"
     )
@@ -56,7 +57,7 @@ module.exports = (robot) ->
     showNextRevisionJob = pulsarApi.createJob(app, env, 'deploy:show_next_revision')
     showNextRevisionJob.on('success', ()->
       if(!@data.stdout || !@data.stdout.trim())
-        @.emit('error', new Error("#{@} does not have a revision number."))
+        @.emit('error', new Error("Cannot retrieve revision number."))
         return
       revision = @data.stdout.trim()
       pendingJob.taskVariables = revision: revision
