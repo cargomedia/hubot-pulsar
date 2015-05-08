@@ -21,7 +21,7 @@ module.exports = (robot) ->
       chat.send "Pending changes for #{@app} #{@env}:\n#{@data.stdout}"
     ).on('error', (error)->
       chat.send "Pending changes failed: #{JSON.stringify(error)}"
-      chat.send "More info: #{@data.url}"
+      chat.send "More info: #{@data.url}" if @data.url
     )
     pulsarApi.runJob(job)
 
@@ -51,7 +51,7 @@ module.exports = (robot) ->
       chat.send "Say 'CONFIRM DEPLOY' or 'CANCEL DEPLOY'."
     ).on('error', (error)->
       deployJob.emit('error', error)
-      chat.send "More info: #{@data.url}"
+      chat.send "More info: #{@data.url}" if @data.url
     )
 
     showNextRevisionJob = pulsarApi.createJob(app, env, 'deploy:show_next_revision')
@@ -64,7 +64,7 @@ module.exports = (robot) ->
       pulsarApi.runJob(pendingJob)
     ).on('error', (error)->
       deployJob.emit('error', error)
-      chat.send "More info: #{@data.url}"
+      chat.send "More info: #{@data.url}" if @data.url
     )
     pulsarApi.runJob(showNextRevisionJob)
 
