@@ -2,7 +2,7 @@ _ = require('underscore')
 
 class DeploymentMonitor
 
-  timeout = 10000
+  timeout = 30000
 
   constructor: ()->
     @_deployJob = null
@@ -43,7 +43,7 @@ class DeploymentMonitor
     if !@.hasDeployJob()
       return
     @_currentTimeout += timeout
-    @_chat.send "Running #{@_currentTimeout}ms: #{getLastText(@_deployJob.data.output)}"
+    @_chat.send "Running #{(@_currentTimeout / 1000)}secs: #{getLastText(@_deployJob.data.output)}"
     @_monitorTimeout()
   , timeout)
 
