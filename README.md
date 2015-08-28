@@ -27,3 +27,6 @@ Authorization support is optional, and enabled if the [hubot-auth](https://githu
 ## Deploy.coffee
 For deploying applications.
 Everyone with the role `deployer` is allowed to trigger deployments.
+
+## Real-life usage example
+Please look how this script can be used in your everyday workflow [http://www.cargomedia.ch/2015/06/23/pulsar-rest-api.html](http://www.cargomedia.ch/2015/06/23/pulsar-rest-api.html). 
