@@ -84,3 +84,20 @@ module.exports = (robot) ->
       return
     chat.send 'Deployment cancelled.'
     deploymentMonitor.removeDeployJob()
+
+  robot.respond /deploy rollback ([^\s]+) ([^\s]+)$/i, (chat) ->
+    app = chat.match[1]
+    env = chat.match[2]
+    if(deploymentMonitor.hasDeployJob())
+      chat.send "Deploy rollback can not be started because #{deploymentMonitor.getDeployJob()} is in progress"
+      return
+    chat.send "Rolling back the previous deploy…"
+    job = pulsarApi.createJob(app, env, 'deploy:rollback')
+    job.on('success', () ->
+      chat.send "Successfully rolled back deploy for #{@app} #{@env}"
+      chat.send "#{@data.stdout}" if @data.stdout
+    ).on('error', (error)->
+      chat.send "Deploy rollback failed: #{JSON.stringify(error)}"
+      chat.send "More info: #{@data.url}" if @data.url
+    )
+    pulsarApi.runJob(job)
