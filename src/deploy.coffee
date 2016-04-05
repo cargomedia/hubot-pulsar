@@ -1,12 +1,3 @@
-# Description:
-#   Deploy applications with pulsar
-#
-# Commands:
-#   hubot deploy pending <application> <environment> - Show pending changes
-#   hubot deploy <application> <environment> - Deploy application
-
-_ = require('underscore')
-
 DeploymentMonitor = require('./deployment/monitor')
 deploymentMonitor = new DeploymentMonitor()
 
