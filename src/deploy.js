@@ -106,4 +106,31 @@ module.exports = function(robot) {
     chat.send('Deployment cancelled.');
     deploymentMonitor.removeDeployJob();
   });
+
+  robot.respond(/deploy rollback ([^\s]+) ([^\s]+)$/i, function(chat) {
+    var app = chat.match[1];
+    var env = chat.match[2];
+
+    if (deploymentMonitor.hasDeployJob()) {
+      chat.send("Deploy rollback can not be started because " + (deploymentMonitor.getDeployJob()) + " is in progress");
+      return;
+    }
+    chat.send("Rolling back the previous deploy…");
+
+    var job = pulsarApi.createJob(app, env, 'deploy:rollback');
+    job.on('success', function() {
+        chat.send("Successfully rolled back deploy for " + this.app + " " + this.env);
+        if (this.data.stdout) {
+          return chat.send("" + this.data.stdout);
+        }
+      })
+      .on('error', function(error) {
+        chat.send("Deploy rollback failed: " + (JSON.stringify(error)));
+        if (this.data.url) {
+          return chat.send("More info: " + this.data.url);
+        }
+      });
+
+    pulsarApi.runJob(job);
+  });
 };
