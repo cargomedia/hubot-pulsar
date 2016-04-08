@@ -4,10 +4,15 @@ var deployMutex = new DeployMutex();
 module.exports = function(robot) {
 
   robot.respond(/deploy pending ([^\s]+) ([^\s]+)$/i, function(chat) {
+    if (deployMutex.hasJob()) {
+      chat.send('Deploy job can not be started because ' + (deployMutex.getJob()) + ' is in progress');
+      return;
+    }
     var app = chat.match[1];
     var env = chat.match[2];
     chat.send('Getting changes…');
     var job = pulsarApi.createJob(app, env, 'deploy:pending');
+    deployMutex.setJob(job, chat);
 
     job.on('success', function() {
       return chat.send('Pending changes for ' + this.app + ' ' + this.env + ':\n' + this.data.stdout);
