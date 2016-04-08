@@ -114,6 +114,9 @@ module.exports = function(robot) {
   });
 
   robot.respond(/deploy rollback ([^\s]+) ([^\s]+)$/i, function(chat) {
+    if (!robot.userHasRole(chat, 'deployer')) {
+      return;
+    }
     var app = chat.match[1];
     var env = chat.match[2];
 
@@ -124,6 +127,7 @@ module.exports = function(robot) {
     chat.send("Rolling back the previous deploy…");
 
     var job = pulsarApi.createJob(app, env, 'deploy:rollback');
+    deployMutex.setJob(job, chat);
     job.on('success', function() {
         chat.send("Successfully rolled back deploy for " + this.app + " " + this.env);
         if (this.data.stdout) {
