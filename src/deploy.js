@@ -136,4 +136,35 @@ module.exports = function(robot) {
 
     pulsarApi.runJob(job);
   });
+
+  robot.respond(/deploy restart ([^\s]+) ([^\s]+)$/i, function(chat) {
+    if (!robot.userHasRole(chat, 'deployer')) {
+      return;
+    }
+    var app = chat.match[1];
+    var env = chat.match[2];
+
+    if (deployMutex.hasJob()) {
+      chat.send("Can not restart because " + (deployMutex.getJob()) + " is in progress");
+      return;
+    }
+    chat.send("Restarting the application…");
+
+    var job = pulsarApi.createJob(app, env, 'deploy:restart');
+    deployMutex.setJob(job, chat);
+    job.on('success', function() {
+        chat.send("Restart is done for " + this.app + " " + this.env);
+        if (this.data.stdout) {
+          return chat.send("" + this.data.stdout);
+        }
+      })
+      .on('error', function(error) {
+        chat.send("Restart failed: " + (JSON.stringify(error)));
+        if (this.data.url) {
+          return chat.send("More info: " + this.data.url);
+        }
+      });
+
+    pulsarApi.runJob(job);
+  });
 };
