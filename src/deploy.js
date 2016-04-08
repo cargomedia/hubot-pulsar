@@ -25,8 +25,8 @@ module.exports = function(robot) {
     if (!robot.userHasRole(chat, 'deployer')) {
       return;
     }
-    if (deployMutex.hasDeployJob()) {
-      chat.send('Deploy job can not be started because ' + (deployMutex.getDeployJob()) + ' is in progress');
+    if (deployMutex.hasJob()) {
+      chat.send('Deploy job can not be started because ' + (deployMutex.getJob()) + ' is in progress');
       return;
     }
 
@@ -35,7 +35,7 @@ module.exports = function(robot) {
     chat.send('Getting changes…');
 
     var deployJob = pulsarApi.createJob(app, env, 'deploy');
-    deployMutex.setDeployJob(deployJob, chat);
+    deployMutex.setJob(deployJob, chat);
     deployJob.on('create', function() {
       return chat.send('Deployment started: ' + this.data.url);
     }).on('success', function() {
@@ -84,12 +84,12 @@ module.exports = function(robot) {
     if (!robot.userHasRole(chat, 'deployer')) {
       return;
     }
-    if (!deployMutex.hasDeployJob()) {
+    if (!deployMutex.hasJob()) {
       chat.send('No deploy job to confirm');
       return;
     }
 
-    var deployJob = deployMutex.getDeployJob();
+    var deployJob = deployMutex.getJob();
     pulsarApi.runJob(deployJob);
     chat.send('Deployment confirmed.');
   });
@@ -98,21 +98,21 @@ module.exports = function(robot) {
     if (!robot.userHasRole(chat, 'deployer')) {
       return;
     }
-    if (!deployMutex.hasDeployJob()) {
+    if (!deployMutex.hasJob()) {
       chat.send('No deploy job to cancel');
       return;
     }
 
     chat.send('Deployment cancelled.');
-    deployMutex.removeDeployJob();
+    deployMutex.removeJob();
   });
 
   robot.respond(/deploy rollback ([^\s]+) ([^\s]+)$/i, function(chat) {
     var app = chat.match[1];
     var env = chat.match[2];
 
-    if (deployMutex.hasDeployJob()) {
-      chat.send("Deploy rollback can not be started because " + (deployMutex.getDeployJob()) + " is in progress");
+    if (deployMutex.hasJob()) {
+      chat.send("Deploy rollback can not be started because " + (deployMutex.getJob()) + " is in progress");
       return;
     }
     chat.send("Rolling back the previous deploy…");
