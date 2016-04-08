@@ -4,7 +4,6 @@ var deployMutex = new DeployMutex();
 module.exports = function(robot) {
 
   robot.respond(/deploy pending ([^\s]+) ([^\s]+)$/i, function(chat) {
-    console.log(chat.constructor);
     var app = chat.match[1];
     var env = chat.match[2];
     chat.send('Getting changes…');
@@ -89,8 +88,7 @@ module.exports = function(robot) {
     if (job) {
       pulsarApi.runJob(job);
       chat.send('Deployment confirmed.');
-    }
-    else {
+    } else {
       chat.send('No deploy job to confirm');
     }
   });
@@ -103,8 +101,7 @@ module.exports = function(robot) {
     if (job) {
       chat.send('Deployment cancelled.');
       deployMutex.removeJob();
-    }
-    else {
+    } else {
       chat.send('No deploy job to cancel');
     }
   });
