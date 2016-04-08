@@ -1,6 +1,6 @@
 var _ = require('underscore');
 
-function DeploymentMonitor() {
+function DeployMutex() {
   this._deployJob = null;
   this._chat = null;
   this._currentTimeout = 0;
@@ -19,7 +19,7 @@ function DeploymentMonitor() {
   };
 }
 
-DeploymentMonitor.prototype.setDeployJob = function(deployJob, chat) {
+DeployMutex.prototype.setDeployJob = function(deployJob, chat) {
   if (this.hasDeployJob()) {
     this.removeDeployJob();
   }
@@ -31,15 +31,15 @@ DeploymentMonitor.prototype.setDeployJob = function(deployJob, chat) {
   }.bind(this));
 };
 
-DeploymentMonitor.prototype.hasDeployJob = function() {
+DeployMutex.prototype.hasDeployJob = function() {
   return null !== this._deployJob;
 };
 
-DeploymentMonitor.prototype.getDeployJob = function() {
+DeployMutex.prototype.getDeployJob = function() {
   return this._deployJob;
 };
 
-DeploymentMonitor.prototype.removeDeployJob = function() {
+DeployMutex.prototype.removeDeployJob = function() {
   _.each(this._eventListeners, function(listener, event) {
     return this._deployJob.removeListener(event, listener);
   }.bind(this));
@@ -48,23 +48,23 @@ DeploymentMonitor.prototype.removeDeployJob = function() {
   this._chat = null;
 };
 
-DeploymentMonitor.prototype._monitorTimeout = _.debounce(function() {
+DeployMutex.prototype._monitorTimeout = _.debounce(function() {
   if (!this.hasDeployJob()) {
     return;
   }
-  this._currentTimeout += DeploymentMonitor._monitorTimeoutPeriod;
-  this._chat.send('Running ' + (this._currentTimeout / 1000) + 'secs: ' + (DeploymentMonitor._getLastText(this._deployJob.data.output)));
+  this._currentTimeout += DeployMutex._monitorTimeoutPeriod;
+  this._chat.send('Running ' + (this._currentTimeout / 1000) + 'secs: ' + (DeployMutex._getLastText(this._deployJob.data.output)));
   return this._monitorTimeout();
-}, DeploymentMonitor._monitorTimeoutPeriod);
+}, DeployMutex._monitorTimeoutPeriod);
 
-DeploymentMonitor.prototype._resetTimeout = function() {
+DeployMutex.prototype._resetTimeout = function() {
   if (this._currentTimeout > 0) {
     this._chat.send('Continuing...');
   }
   return this._currentTimeout = 0;
 };
 
-DeploymentMonitor._getLastText = function(text) {
+DeployMutex._getLastText = function(text) {
   var textLines = text.split(/\r?\n/);
   var n = textLines.length - 1;
   while (!textLines[n].trim() && n > 0) {
@@ -73,6 +73,6 @@ DeploymentMonitor._getLastText = function(text) {
   return textLines[n];
 };
 
-DeploymentMonitor._monitorTimeoutPeriod = 30000;
+DeployMutex._monitorTimeoutPeriod = 30000;
 
-module.exports = DeploymentMonitor;
+module.exports = DeployMutex;

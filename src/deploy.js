@@ -1,5 +1,5 @@
-var DeploymentMonitor = require('./deployment/monitor');
-var deploymentMonitor = new DeploymentMonitor();
+var DeployMutex = require('./deploy-mutex');
+var deployMutex = new DeployMutex();
 
 module.exports = function(robot) {
 
@@ -25,8 +25,8 @@ module.exports = function(robot) {
     if (!robot.userHasRole(chat, 'deployer')) {
       return;
     }
-    if (deploymentMonitor.hasDeployJob()) {
-      chat.send('Deploy job can not be started because ' + (deploymentMonitor.getDeployJob()) + ' is in progress');
+    if (deployMutex.hasDeployJob()) {
+      chat.send('Deploy job can not be started because ' + (deployMutex.getDeployJob()) + ' is in progress');
       return;
     }
 
@@ -35,7 +35,7 @@ module.exports = function(robot) {
     chat.send('Getting changes…');
 
     var deployJob = pulsarApi.createJob(app, env, 'deploy');
-    deploymentMonitor.setDeployJob(deployJob, chat);
+    deployMutex.setDeployJob(deployJob, chat);
     deployJob.on('create', function() {
       return chat.send('Deployment started: ' + this.data.url);
     }).on('success', function() {
@@ -84,12 +84,12 @@ module.exports = function(robot) {
     if (!robot.userHasRole(chat, 'deployer')) {
       return;
     }
-    if (!deploymentMonitor.hasDeployJob()) {
+    if (!deployMutex.hasDeployJob()) {
       chat.send('No deploy job to confirm');
       return;
     }
 
-    var deployJob = deploymentMonitor.getDeployJob();
+    var deployJob = deployMutex.getDeployJob();
     pulsarApi.runJob(deployJob);
     chat.send('Deployment confirmed.');
   });
@@ -98,21 +98,21 @@ module.exports = function(robot) {
     if (!robot.userHasRole(chat, 'deployer')) {
       return;
     }
-    if (!deploymentMonitor.hasDeployJob()) {
+    if (!deployMutex.hasDeployJob()) {
       chat.send('No deploy job to cancel');
       return;
     }
 
     chat.send('Deployment cancelled.');
-    deploymentMonitor.removeDeployJob();
+    deployMutex.removeDeployJob();
   });
 
   robot.respond(/deploy rollback ([^\s]+) ([^\s]+)$/i, function(chat) {
     var app = chat.match[1];
     var env = chat.match[2];
 
-    if (deploymentMonitor.hasDeployJob()) {
-      chat.send("Deploy rollback can not be started because " + (deploymentMonitor.getDeployJob()) + " is in progress");
+    if (deployMutex.hasDeployJob()) {
+      chat.send("Deploy rollback can not be started because " + (deployMutex.getDeployJob()) + " is in progress");
       return;
     }
     chat.send("Rolling back the previous deploy…");
