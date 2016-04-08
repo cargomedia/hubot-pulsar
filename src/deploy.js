@@ -1,5 +1,5 @@
-var DeploymentMonitor = require('./deployment/monitor');
-var deploymentMonitor = new DeploymentMonitor();
+var DeployMutex = require('./deploy-mutex');
+var deployMutex = new DeployMutex();
 
 module.exports = function(robot) {
 
@@ -25,8 +25,8 @@ module.exports = function(robot) {
     if (!robot.userHasRole(chat, 'deployer')) {
       return;
     }
-    if (deploymentMonitor.hasDeployJob()) {
-      chat.send('Deploy job can not be started because ' + (deploymentMonitor.getDeployJob()) + ' is in progress');
+    if (deployMutex.hasJob()) {
+      chat.send('Deploy job can not be started because ' + (deployMutex.getJob()) + ' is in progress');
       return;
     }
 
@@ -35,7 +35,7 @@ module.exports = function(robot) {
     chat.send('Getting changes…');
 
     var deployJob = pulsarApi.createJob(app, env, 'deploy');
-    deploymentMonitor.setDeployJob(deployJob, chat);
+    deployMutex.setJob(deployJob, chat);
     deployJob.on('create', function() {
       return chat.send('Deployment started: ' + this.data.url);
     }).on('success', function() {
@@ -84,26 +84,56 @@ module.exports = function(robot) {
     if (!robot.userHasRole(chat, 'deployer')) {
       return;
     }
-    if (!deploymentMonitor.hasDeployJob()) {
+    var job = deployMutex.getJobWithTask('deploy');
+    if (job) {
+      pulsarApi.runJob(job);
+      chat.send('Deployment confirmed.');
+    } else {
       chat.send('No deploy job to confirm');
-      return;
     }
-
-    var deployJob = deploymentMonitor.getDeployJob();
-    pulsarApi.runJob(deployJob);
-    chat.send('Deployment confirmed.');
   });
 
   robot.respond(/cancel deploy$/i, function(chat) {
     if (!robot.userHasRole(chat, 'deployer')) {
       return;
     }
-    if (!deploymentMonitor.hasDeployJob()) {
+    var job = deployMutex.getJobWithTask('deploy');
+    if (job) {
+      chat.send('Deployment cancelled.');
+      deployMutex.removeJob();
+    } else {
       chat.send('No deploy job to cancel');
+    }
+  });
+
+  robot.respond(/deploy rollback ([^\s]+) ([^\s]+)$/i, function(chat) {
+    if (!robot.userHasRole(chat, 'deployer')) {
       return;
     }
+    var app = chat.match[1];
+    var env = chat.match[2];
 
-    chat.send('Deployment cancelled.');
-    deploymentMonitor.removeDeployJob();
+    if (deployMutex.hasJob()) {
+      chat.send("Deploy rollback can not be started because " + (deployMutex.getJob()) + " is in progress");
+      return;
+    }
+    chat.send("Rolling back the previous deploy…");
+
+    var job = pulsarApi.createJob(app, env, 'deploy:rollback');
+    deployMutex.setJob(job, chat);
+    job.on('success', function() {
+        chat.send("Successfully rolled back deploy for " + this.app + " " + this.env);
+        if (this.data.stdout) {
+          return chat.send("" + this.data.stdout);
+        }
+      })
+      .on('error', function(error) {
+        chat.send("Deploy rollback failed: " + (JSON.stringify(error)));
+        if (this.data.url) {
+          return chat.send("More info: " + this.data.url);
+        }
+      });
+
+    pulsarApi.runJob(job);
   });
 };
