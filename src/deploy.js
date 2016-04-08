@@ -4,6 +4,7 @@ var deployMutex = new DeployMutex();
 module.exports = function(robot) {
 
   robot.respond(/deploy pending ([^\s]+) ([^\s]+)$/i, function(chat) {
+    console.log(chat.constructor);
     var app = chat.match[1];
     var env = chat.match[2];
     chat.send('Getting changes…');
@@ -84,28 +85,28 @@ module.exports = function(robot) {
     if (!robot.userHasRole(chat, 'deployer')) {
       return;
     }
-    var job = deployMutex.getJob();
-    if (!job || 'deploy' != job.task) {
-      chat.send('No deploy job to confirm');
-      return;
+    var job = deployMutex.getJobWithTask('deploy');
+    if (job) {
+      pulsarApi.runJob(job);
+      chat.send('Deployment confirmed.');
     }
-
-    pulsarApi.runJob(job);
-    chat.send('Deployment confirmed.');
+    else {
+      chat.send('No deploy job to confirm');
+    }
   });
 
   robot.respond(/cancel deploy$/i, function(chat) {
     if (!robot.userHasRole(chat, 'deployer')) {
       return;
     }
-    var job = deployMutex.getJob();
-    if (!job || 'deploy' != job.task) {
-      chat.send('No deploy job to cancel');
-      return;
+    var job = deployMutex.getJobWithTask('deploy');
+    if (job) {
+      chat.send('Deployment cancelled.');
+      deployMutex.removeJob();
     }
-
-    chat.send('Deployment cancelled.');
-    deployMutex.removeJob();
+    else {
+      chat.send('No deploy job to cancel');
+    }
   });
 
   robot.respond(/deploy rollback ([^\s]+) ([^\s]+)$/i, function(chat) {

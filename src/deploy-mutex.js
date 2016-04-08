@@ -1,5 +1,8 @@
 var _ = require('underscore');
 
+/**
+ * @constructor
+ */
 function DeployMutex() {
   this._job = null;
   this._chat = null;
@@ -19,6 +22,10 @@ function DeployMutex() {
   };
 }
 
+/**
+ * @param {Job} job
+ * @param {Response} chat
+ */
 DeployMutex.prototype.setJob = function(job, chat) {
   if (this.hasJob()) {
     this.removeJob();
@@ -31,12 +38,26 @@ DeployMutex.prototype.setJob = function(job, chat) {
   }.bind(this));
 };
 
+/**
+ * @returns {boolean}
+ */
 DeployMutex.prototype.hasJob = function() {
   return null !== this._job;
 };
 
+/**
+ * @returns {null|Job}
+ */
 DeployMutex.prototype.getJob = function() {
   return this._job;
+};
+
+/**
+ * @param {string} task
+ * @returns {null|Job}
+ */
+DeployMutex.prototype.getJobWithTask = function(task) {
+  return this._job && this._job.task == task ? this._job : null;
 };
 
 DeployMutex.prototype.removeJob = function() {
@@ -64,6 +85,10 @@ DeployMutex.prototype._resetTimeout = function() {
   return this._currentTimeout = 0;
 };
 
+/**
+ * @param text
+ * @returns {string}
+ */
 DeployMutex._getLastText = function(text) {
   var textLines = text.split(/\r?\n/);
   var n = textLines.length - 1;
