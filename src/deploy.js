@@ -89,13 +89,13 @@ module.exports = function(robot) {
     if (!robot.userHasRole(chat, 'deployer')) {
       return;
     }
-    if (!deployMutex.hasJob()) {
+    var job = deployMutex.getJob();
+    if (!job || 'deploy' != job.task) {
       chat.send('No deploy job to confirm');
       return;
     }
 
-    var deployJob = deployMutex.getJob();
-    pulsarApi.runJob(deployJob);
+    pulsarApi.runJob(job);
     chat.send('Deployment confirmed.');
   });
 
@@ -103,7 +103,8 @@ module.exports = function(robot) {
     if (!robot.userHasRole(chat, 'deployer')) {
       return;
     }
-    if (!deployMutex.hasJob()) {
+    var job = deployMutex.getJob();
+    if (!job || 'deploy' != job.task) {
       chat.send('No deploy job to cancel');
       return;
     }
