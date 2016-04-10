@@ -17,9 +17,17 @@
   "bugs": {
     "url": "https://github.com/cargomedia/hubot-pulsar/issues"
   },
+  "scripts": {
+    "test": "$(npm bin)/mocha"
+  },
   "dependencies": {
     "pulsar-rest-api-client-node": "^0.4.2",
-    "underscore": "^1.5.2",
+    "underscore": "^1.8.2",
     "hubot-auth": "^1.2.0"
+  },
+  "devDependencies": {
+    "chai": "^3.5.0",
+    "mocha": "^2.4.5",
+    "sinon": "^1.17.3"
   }
 }
