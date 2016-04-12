@@ -1,6 +1,10 @@
 var EventEmitter = require('events');
 var util = require('util');
 
+/**
+ * @param {Job} job
+ * @constructor
+ */
 function JobMonitor(job) {
   EventEmitter.call(this);
 
