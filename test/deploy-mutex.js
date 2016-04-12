@@ -2,6 +2,7 @@ var assert = require('chai').assert;
 var sinon = require('sinon');
 var Job = require('pulsar-rest-api-client-node/src/job');
 var DeployMutex = require('../src/deploy-mutex');
+var JobMonitor = require('../src/job-monitor');
 
 describe('DeployMutex tests', function() {
 
@@ -23,12 +24,46 @@ describe('DeployMutex tests', function() {
     ['success', 'error', 'change'].forEach(function(event) {
       assert.isTrue(deployMutex._eventListeners[event].calledOnce);
     });
+    deployMutex.removeJob();
+  });
+
+  context('monitor job', function() {
+    var previousMonitorTimePeriod;
+
+    before(function() {
+      previousMonitorTimePeriod = JobMonitor._monitorTimePeriod;
+      JobMonitor._monitorTimePeriod = 500;
+    });
+
+    after(function() {
+      JobMonitor._monitorTimePeriod = previousMonitorTimePeriod;
+      deployMutex.removeJob();
+    });
+
+    it('should print stdout on job change', function(done) {
+      var previousMonitorTimePeriod = JobMonitor._monitorTimePeriod;
+      JobMonitor._monitorTimePeriod = 500;
+      job.data.output = 'output';
+      var chat = {
+        send: function(message) {
+          assert.include(message, job.data.output);
+          done();
+        }
+      };
+      deployMutex.setJob(job, chat);
+      job.emit('change');
+    });
+
   });
 
   context('when job set is set', function() {
 
     beforeEach(function() {
       deployMutex.setJob(job);
+    });
+
+    afterEach(function() {
+      deployMutex.removeJob();
     });
 
     it('sets job', function() {
@@ -62,18 +97,6 @@ describe('DeployMutex tests', function() {
       sinon.stub(deployMutex, 'removeJob');
       job.emit('success');
       assert.isTrue(deployMutex.removeJob.calledOnce);
-    });
-
-    it('should print stdout on job change', function(done) {
-      job.data.output = 'output';
-      var chat = {
-        send: function(message) {
-          assert.include(message, job.data.output);
-          done();
-        }
-      };
-      deployMutex.setJob(job, chat);
-      job.emit('change');
     });
 
   });

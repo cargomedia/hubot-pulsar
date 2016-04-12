@@ -1,4 +1,5 @@
 var _ = require('underscore');
+var JobMonitor = require('./job-monitor');
 
 /**
  * @constructor
@@ -6,18 +7,17 @@ var _ = require('underscore');
 function DeployMutex() {
   this._job = null;
   this._chat = null;
-  this._currentTimeout = 0;
-  var mutex = this;
+  this._jobMonitor = null;
+  var self = this;
   this._eventListeners = {
     change: function() {
-      mutex._resetTimeout();
-      mutex._monitorTimeout();
+      self._jobMonitor.reset();
     },
     success: function() {
-      mutex.removeJob();
+      self.removeJob();
     },
     error: function() {
-      mutex.removeJob();
+      self.removeJob();
     }
   };
 }
@@ -32,10 +32,19 @@ DeployMutex.prototype.setJob = function(job, chat) {
   }
   this._job = job;
   this._chat = chat;
+  var self = this;
 
-  return _.each(this._eventListeners, function(listener, event) {
-    return this._job.on(event, listener);
-  }.bind(this));
+  this._jobMonitor = new JobMonitor(job);
+  this._jobMonitor.on('update', function(runningTime) {
+    self._chat.send('Running ' + runningTime + 'secs: ' + (DeployMutex._getLastText(self._job.data.output)));
+  });
+  this._jobMonitor.on('reset', function() {
+    self._chat.send('Continuing...');
+  });
+
+  _.each(this._eventListeners, function(listener, event) {
+    return self._job.on(event, listener);
+  });
 };
 
 /**
@@ -61,28 +70,19 @@ DeployMutex.prototype.getJobWithTask = function(task) {
 };
 
 DeployMutex.prototype.removeJob = function() {
-  _.each(this._eventListeners, function(listener, event) {
-    return this._job.removeListener(event, listener);
-  }.bind(this));
+  if (this._job) {
+    _.each(this._eventListeners, function(listener, event) {
+      return this._job.removeListener(event, listener);
+    }.bind(this));
+    this._job = null;
+  }
 
-  this._job = null;
+  if (this._jobMonitor) {
+    this._jobMonitor.destroy();
+    this._jobMonitor = null;
+  }
+
   this._chat = null;
-};
-
-DeployMutex.prototype._monitorTimeout = _.debounce(function() {
-  if (!this.hasJob()) {
-    return;
-  }
-  this._currentTimeout += DeployMutex._monitorTimeoutPeriod;
-  this._chat.send('Running ' + (this._currentTimeout / 1000) + 'secs: ' + (DeployMutex._getLastText(this._job.data.output)));
-  return this._monitorTimeout();
-}, DeployMutex._monitorTimeoutPeriod);
-
-DeployMutex.prototype._resetTimeout = function() {
-  if (this._currentTimeout > 0) {
-    this._chat.send('Continuing...');
-  }
-  return this._currentTimeout = 0;
 };
 
 /**
@@ -97,7 +97,5 @@ DeployMutex._getLastText = function(text) {
   }
   return textLines[n];
 };
-
-DeployMutex._monitorTimeoutPeriod = 30000;
 
 module.exports = DeployMutex;
