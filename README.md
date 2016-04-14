@@ -1,4 +1,4 @@
-hubot-pulsar [![Build Status](https://travis-ci.org/cargomedia/hubot-pulsar.png?branch=master)](https://travis-ci.org/cargomedia/hubot-pulsar)
+hubot-pulsar [![Build Status](https://img.shields.io/travis/cargomedia/hubot-pulsar/master.svg)](https://travis-ci.org/cargomedia/hubot-pulsar)
 ============
 
 ## About
