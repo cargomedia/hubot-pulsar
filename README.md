@@ -28,5 +28,10 @@ Authorization support is optional, and enabled if the [hubot-auth](https://githu
 For deploying applications.
 Everyone with the role `deployer` is allowed to trigger deployments.
 
+The script emits the following [events](https://github.com/github/hubot/blob/master/docs/scripting.md#events):
+- `deploy:start`: When a deployment is started
+- `deploy:success`: When a deployment finished successfully
+- `deploy:error`: When a deployment fails
+
 ## Real-life usage example
 Please look how this script can be used in your everyday workflow [http://www.cargomedia.ch/2015/06/23/pulsar-rest-api.html](http://www.cargomedia.ch/2015/06/23/pulsar-rest-api.html).
