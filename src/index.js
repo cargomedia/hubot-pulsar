@@ -5,9 +5,9 @@
 //   hubot deploy pending <application> <environment> - Show pending changes
 //   hubot deploy <application> <environment> - Deploy application
 //   hubot deploy rollback <application> <environment> - Roll back to the previous release
-//   hubot deploy restart <application> <environment> - Restarts application
-//   hubot confirm deploy - Confirms the deploy that was requested by `deploy` command. Actual only if there was the requested deploy.
-//   hubot cancel deploy - Cancels the deploy that was requested by `deploy` command. Actual only if there was the requested deploy.
+//   hubot deploy restart <application> <environment> - Restart application
+//   hubot confirm deploy - Confirm a pending release
+//   hubot cancel deploy - Cancel a pending release
 
 var PulsarApiClient = require('pulsar-rest-api-client-node');
 var Config = require('./config');
