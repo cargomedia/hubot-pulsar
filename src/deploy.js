@@ -1,6 +1,10 @@
 var DeployMutex = require('./deploy-mutex');
 var deployMutex = new DeployMutex();
 
+var Bot = require('bot');
+var BotDB = require('bot/lib/db');
+var bot = new Bot(new BotDB, ['I am so shy to answer this ;\'(']);
+
 module.exports = function(robot) {
 
   robot.respond(/deploy pending ([^\s]+) ([^\s]+)$/i, function(chat) {
@@ -166,5 +170,10 @@ module.exports = function(robot) {
       });
 
     pulsarApi.runJob(job);
+  });
+
+  robot.respond(/(.*)$/i, function(chat) {
+    var text = chat.match[1];
+    chat.send(bot.answer(text));
   });
 };
