@@ -37,10 +37,13 @@ module.exports = function(robot) {
     var deployJob = pulsarApi.createJob(app, env, 'deploy');
     deployMutex.setJob(deployJob, chat);
     deployJob.on('create', function() {
+      robot.emit('deploy:start', {chat: chat, job: deployJob});
       return chat.send('Deployment started: ' + this.data.url);
     }).on('success', function() {
+      robot.emit('deploy:success', {chat: chat, job: deployJob});
       return chat.send('Deployment finished.');
     }).on('error', function(error) {
+      robot.emit('deploy:error', {chat: chat, job: deployJob, error: error});
       return chat.send('Deployment failed: ' + (JSON.stringify(error)));
     });
 
