@@ -35,11 +35,11 @@ DeployMutex.prototype.setJob = function(job, chat) {
   var self = this;
 
   this._jobMonitor = new JobMonitor(job);
-  this._jobMonitor.on('update', function(runningTime) {
-    self._chat.send('Running ' + runningTime + 'secs: ' + (DeployMutex._getLastText(self._job.data.output)));
-  });
-  this._jobMonitor.on('reset', function() {
+  this._jobMonitor.on('update', function() {
     self._chat.send('Continuing...');
+  });
+  this._jobMonitor.on('idle', function(runningTime) {
+    self._chat.send('Running ' + runningTime + 'secs: ' + (DeployMutex._getLastText(self._job.data.output)));
   });
 
   _.each(this._eventListeners, function(listener, event) {

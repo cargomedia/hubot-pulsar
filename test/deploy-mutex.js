@@ -37,16 +37,32 @@ describe('DeployMutex tests', function() {
 
     after(function() {
       JobMonitor._monitorTimePeriod = previousMonitorTimePeriod;
+    });
+
+    afterEach(function() {
       deployMutex.removeJob();
     });
 
-    it('should print stdout on job change', function(done) {
-      var previousMonitorTimePeriod = JobMonitor._monitorTimePeriod;
-      JobMonitor._monitorTimePeriod = 500;
-      job.data.output = 'output';
+    it('should print stdout on job idle', function(done) {
+      job.data.output = 'job.output';
+      var startTime = new Date().getTime();
       var chat = {
         send: function(message) {
+          assert.isAtLeast(new Date().getTime() - startTime, JobMonitor._monitorTimePeriod);
           assert.include(message, job.data.output);
+          done();
+        }
+      };
+      deployMutex.setJob(job, chat);
+    });
+
+    it('should print something on job update', function(done) {
+      job.data.output = 'job.output';
+      var startTime = new Date().getTime();
+      var chat = {
+        send: function(message) {
+          assert.isBelow(new Date().getTime() - startTime, JobMonitor._monitorTimePeriod);
+          assert.notInclude(message, job.data.output);
           done();
         }
       };
