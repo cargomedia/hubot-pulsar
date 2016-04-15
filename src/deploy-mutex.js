@@ -90,9 +90,12 @@ DeployMutex.prototype.removeJob = function() {
  * @returns {string}
  */
 DeployMutex._getLastText = function(text) {
+  if (!text) {
+    return '';
+  }
   var textLines = text.split(/\r?\n/);
   var n = textLines.length - 1;
-  while (!textLines[n].trim() && n > 0) {
+  while (n > 0 && !textLines[n].trim()) {
     n--;
   }
   return textLines[n];
