@@ -1,8 +1,10 @@
 var assert = require('chai').assert;
 var sinon = require('sinon');
+var _ = require('underscore');
 var Job = require('pulsar-rest-api-client-node/src/job');
 var DeployMutex = require('../src/deploy-mutex');
 var JobMonitor = require('../src/job-monitor');
+var PulsarJob = require('../node_modules/pulsar-rest-api/lib/pulsar/job');
 
 describe('DeployMutex tests', function() {
 
@@ -13,26 +15,17 @@ describe('DeployMutex tests', function() {
     job = new Job('app', 'env', 'task');
   });
 
-  it('job events trigger _eventListeners', function() {
-    ['success', 'error', 'change'].forEach(function(event) {
-      sinon.stub(deployMutex._eventListeners, event);
-    });
-    deployMutex.setJob(job, {});
-    ['success', 'error', 'change'].forEach(function(event) {
-      job.emit(event);
-    });
-    ['success', 'error', 'change'].forEach(function(event) {
-      assert.isTrue(deployMutex._eventListeners[event].calledOnce);
-    });
-    deployMutex.removeJob();
-  });
-
   context('monitor job', function() {
     var previousMonitorTimePeriod;
 
     before(function() {
       previousMonitorTimePeriod = JobMonitor._monitorTimePeriod;
       JobMonitor._monitorTimePeriod = 500;
+    });
+
+    beforeEach(function() {
+      job.data.output = 'job.output';
+      job.data.status = PulsarJob.STATUS.RUNNING;
     });
 
     after(function() {
@@ -44,7 +37,6 @@ describe('DeployMutex tests', function() {
     });
 
     it('should print stdout on job idle', function(done) {
-      job.data.output = 'job.output';
       var startTime = new Date().getTime();
       var chat = {
         send: function(message) {
@@ -56,20 +48,54 @@ describe('DeployMutex tests', function() {
       deployMutex.setJob(job, chat);
     });
 
-    it('should print something on job update', function(done) {
-      job.data.output = 'job.output';
+    it('should not print "continue" on usual job change', function(done) {
       var startTime = new Date().getTime();
-      var chat = {
-        send: function(message) {
-          assert.isBelow(new Date().getTime() - startTime, JobMonitor._monitorTimePeriod);
-          assert.notInclude(message, job.data.output);
-          done();
-        }
-      };
+      var chat = {send: sinon.stub()};
       deployMutex.setJob(job, chat);
+
+      deployMutex._jobMonitor.on('idle', function() {
+        assert.equal(chat.send.callCount, 1);
+        assert.isAbove(new Date().getTime() - startTime, JobMonitor._monitorTimePeriod);
+        var firstCall = chat.send.getCall(0);
+        assert.notInclude(firstCall.args[0], 'Continue');
+        done();
+      });
+
+      deployMutex._jobMonitor.on('resume', function() {
+        done(new Error('Invalid "resume" event'));
+      });
+
       job.emit('change');
     });
 
+    it('should print "continue" on job update after idle only', function(done) {
+      var startTime = new Date().getTime();
+      var chat = {send: sinon.stub()};
+      deployMutex.setJob(job, chat);
+      deployMutex._jobMonitor.on('idle', function() {
+        job.emit('change');
+      });
+      deployMutex._jobMonitor.on('resume', function() {
+        _.defer(function() {
+          assert.isAbove(new Date().getTime() - startTime, JobMonitor._monitorTimePeriod);
+          assert.equal(chat.send.callCount, 2);
+          var secondCall = chat.send.getCall(1);
+          assert.include(secondCall.args[0], 'Continue');
+          done();
+        });
+      });
+    });
+
+    it('should not print anything after job finished', function(done) {
+      var chat = {send: sinon.stub()};
+      deployMutex.setJob(job, chat);
+      job.emit('success');
+      job.emit('change');
+      setTimeout(function() {
+        assert.equal(chat.send.callCount, 0);
+        done();
+      }, 3 * JobMonitor._monitorTimePeriod);
+    });
   });
 
   context('when job set is set', function() {

@@ -8,18 +8,6 @@ function DeployMutex() {
   this._job = null;
   this._chat = null;
   this._jobMonitor = null;
-  var self = this;
-  this._eventListeners = {
-    change: function() {
-      self._jobMonitor.reset();
-    },
-    success: function() {
-      self.removeJob();
-    },
-    error: function() {
-      self.removeJob();
-    }
-  };
 }
 
 /**
@@ -35,15 +23,14 @@ DeployMutex.prototype.setJob = function(job, chat) {
   var self = this;
 
   this._jobMonitor = new JobMonitor(job);
-  this._jobMonitor.on('update', function() {
-    self._chat.send('Continuing...');
+  this._jobMonitor.on('resume', function() {
+    self._chat.send('Continue...');
   });
   this._jobMonitor.on('idle', function(runningTime) {
     self._chat.send('Running ' + runningTime + 'secs: ' + (DeployMutex._getLastText(self._job.data.output)));
   });
-
-  _.each(this._eventListeners, function(listener, event) {
-    return self._job.on(event, listener);
+  this._jobMonitor.on('destroy', function() {
+    self.removeJob();
   });
 };
 
@@ -70,19 +57,13 @@ DeployMutex.prototype.getJobWithTask = function(task) {
 };
 
 DeployMutex.prototype.removeJob = function() {
-  if (this._job) {
-    _.each(this._eventListeners, function(listener, event) {
-      return this._job.removeListener(event, listener);
-    }.bind(this));
-    this._job = null;
-  }
-
+  this._job = null;
+  this._chat = null;
   if (this._jobMonitor) {
+    this._jobMonitor.removeAllListeners();
     this._jobMonitor.destroy();
     this._jobMonitor = null;
   }
-
-  this._chat = null;
 };
 
 /**
