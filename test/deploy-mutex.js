@@ -4,7 +4,7 @@ var _ = require('underscore');
 var Job = require('pulsar-rest-api-client-node/src/job');
 var DeployMutex = require('../src/deploy-mutex');
 var JobMonitor = require('../src/job-monitor');
-var PulsarJob = require('../node_modules/pulsar-rest-api/lib/pulsar/job');
+var PulsarJob = require('pulsar-rest-api/lib/pulsar/job');
 
 describe('DeployMutex tests', function() {
 
