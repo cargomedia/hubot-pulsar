@@ -8,6 +8,7 @@ function DeployMutex() {
   this._job = null;
   this._chat = null;
   this._jobMonitor = null;
+  this._confirmed = false;
 }
 
 /**
@@ -59,11 +60,23 @@ DeployMutex.prototype.getJobWithTask = function(task) {
 DeployMutex.prototype.removeJob = function() {
   this._job = null;
   this._chat = null;
+  this._confirmed = false;
   if (this._jobMonitor) {
     this._jobMonitor.removeAllListeners();
     this._jobMonitor.destroy();
     this._jobMonitor = null;
   }
+};
+
+/**
+ * @returns {Boolean}
+ */
+DeployMutex.prototype.isConfirmed = function() {
+  return this._confirmed;
+};
+
+DeployMutex.prototype.setConfirmed = function() {
+  this._confirmed = true;
 };
 
 /**
