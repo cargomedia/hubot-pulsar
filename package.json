@@ -21,7 +21,7 @@
     "test": "$(npm bin)/mocha"
   },
   "dependencies": {
-    "pulsar-rest-api-client-node": "^0.4.2",
+    "pulsar-rest-api-client-node": "^0.4",
     "pulsar-rest-api": "^0.5.2",
     "underscore": "^1.8.2",
     "hubot-auth": "^1.2.0"
