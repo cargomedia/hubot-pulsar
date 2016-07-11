@@ -87,6 +87,11 @@ module.exports = function(robot) {
     if (!robot.userHasRole(chat, 'deployer')) {
       return;
     }
+    if (deployMutex.isConfirmed()) {
+      chat.send('Job is already confirmed');
+      return;
+    }
+    deployMutex.setConfirmed();
     var job = deployMutex.getJobWithTask('deploy');
     if (job) {
       pulsarApi.runJob(job);
