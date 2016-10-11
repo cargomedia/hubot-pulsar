@@ -27,6 +27,7 @@
     "hubot-auth": "^1.2.0"
   },
   "devDependencies": {
+    "bluebird": "^3.4.6",
     "chai": "^3.5.0",
     "coffee-script": "^1.9.0",
     "mocha": "^2.4.5",
