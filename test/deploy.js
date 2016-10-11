@@ -51,9 +51,9 @@ describe('Deploy script tests', function() {
 
     beforeEach(function() {
       sinon.stub(pulsarApi, 'runJob', function(job) {
-        _.delay(function() {
+        return Promise.delay(100).then(function() {
           job.emit('success');
-        }, 200);
+        });
       });
     });
 
