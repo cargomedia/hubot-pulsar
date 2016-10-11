@@ -107,8 +107,14 @@ module.exports = function(robot) {
     }
     var job = deployMutex.getJobWithTask('deploy');
     if (job) {
-      chat.send('Deployment cancelled.');
-      deployMutex.removeJob();
+      pulsarApi.killJob(job)
+        .then(function() {
+          chat.send('Deployment cancelled.');
+          deployMutex.removeJob();
+        })
+        .catch(function() {
+          chat.send('Deployment cancellation failed.');
+        });
     } else {
       chat.send('No deploy job to cancel');
     }

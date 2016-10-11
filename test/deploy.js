@@ -1,6 +1,7 @@
 var assert = require('chai').assert;
 var sinon = require('sinon');
 var _ = require('underscore');
+var Promise = require('bluebird');
 require('coffee-script/register');
 var humock = require('mock-hubot');
 
@@ -16,7 +17,8 @@ describe('Deploy script tests', function() {
   before(function() {
     global.pulsarApi = {
       createJob: _.noop,
-      runJob: _.noop
+      runJob: _.noop,
+      killJob: _.noop
     };
   });
 
@@ -49,9 +51,9 @@ describe('Deploy script tests', function() {
 
     beforeEach(function() {
       sinon.stub(pulsarApi, 'runJob', function(job) {
-        _.delay(function() {
+        return Promise.delay(100).then(function() {
           job.emit('success');
-        }, 200);
+        });
       });
     });
 
@@ -95,6 +97,16 @@ describe('Deploy script tests', function() {
     });
 
     context('deploy', function() {
+      beforeEach(function() {
+        sinon.stub(pulsarApi, 'killJob', function() {
+          return Promise.delay(200);
+        });
+      });
+
+      afterEach(function() {
+        global.pulsarApi.killJob.restore();
+      });
+
       it('confirms', function(done) {
         askHubot('hubot deploy app env')
           .response(1, function(response) {

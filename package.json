@@ -1,7 +1,7 @@
 {
   "name": "hubot-pulsar",
   "description": "Hubot script to deploy via Pulsar REST API",
-  "version": "0.6.7",
+  "version": "0.6.8",
   "author": "Cargomedia",
   "license": "MIT",
   "keywords": [
@@ -21,12 +21,13 @@
     "test": "$(npm bin)/mocha"
   },
   "dependencies": {
-    "pulsar-rest-api-client-node": "^0.4",
+    "pulsar-rest-api-client-node": "^0.5",
     "pulsar-rest-api": "^0.5.2",
     "underscore": "^1.8.2",
     "hubot-auth": "^1.2.0"
   },
   "devDependencies": {
+    "bluebird": "^3.4.6",
     "chai": "^3.5.0",
     "coffee-script": "^1.9.0",
     "mocha": "^2.4.5",
