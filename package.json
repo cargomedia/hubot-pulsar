@@ -21,13 +21,13 @@
     "test": "$(npm bin)/mocha"
   },
   "dependencies": {
-    "pulsar-rest-api-client-node": "^0.5",
+    "bluebird": "^3.4.6",
+    "hubot-auth": "^1.2.0",
     "pulsar-rest-api": "^0.5.2",
-    "underscore": "^1.8.2",
-    "hubot-auth": "^1.2.0"
+    "pulsar-rest-api-client-node": "^0.6",
+    "underscore": "^1.8.2"
   },
   "devDependencies": {
-    "bluebird": "^3.4.6",
     "chai": "^3.5.0",
     "coffee-script": "^1.9.0",
     "mocha": "^2.4.5",

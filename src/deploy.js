@@ -1,3 +1,4 @@
+var Promise = require('bluebird');
 var DeployMutex = require('./deploy-mutex');
 var deployMutex = new DeployMutex();
 
@@ -106,20 +107,25 @@ module.exports = function(robot) {
       return;
     }
     var job = deployMutex.getJobWithTask('deploy');
-    if (job) {
-      pulsarApi.killJob(job)
-        .then(function() {
-          chat.send('Deployment cancelled.');
-        })
-        .catch(function() {
-          chat.send('Deployment cancellation failed.');
-        })
-        .finally(function() {
-          deployMutex.removeJob();
-        });
-    } else {
-      chat.send('No deploy job to cancel');
+    if (!job) {
+      return chat.send('No deploy job to cancel');
     }
+    Promise
+      .try(function() {
+        if (job.isCreated()) {
+          return pulsarApi.killJob(job);
+        }
+      })
+      .then(function() {
+        chat.send('Deployment cancelled.');
+      })
+      .catch(function() {
+        chat.send('Deployment cancellation failed.');
+      })
+      .finally(function() {
+        deployMutex.removeJob();
+      });
+
   });
 
   robot.respond(/deploy rollback ([^\s]+) ([^\s]+)$/i, function(chat) {
