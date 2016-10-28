@@ -110,10 +110,12 @@ module.exports = function(robot) {
       pulsarApi.killJob(job)
         .then(function() {
           chat.send('Deployment cancelled.');
-          deployMutex.removeJob();
         })
         .catch(function() {
           chat.send('Deployment cancellation failed.');
+        })
+        .finally(function() {
+          deployMutex.removeJob();
         });
     } else {
       chat.send('No deploy job to cancel');
