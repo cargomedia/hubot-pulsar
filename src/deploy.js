@@ -92,9 +92,9 @@ module.exports = function(robot) {
       chat.send('Job is already confirmed');
       return;
     }
-    deployMutex.setConfirmed();
     var job = deployMutex.getJobWithTask('deploy');
     if (job) {
+      deployMutex.setConfirmed();
       pulsarApi.runJob(job);
       chat.send('Deployment confirmed.');
     } else {
