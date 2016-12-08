@@ -112,7 +112,7 @@ module.exports = function(robot) {
     }
     Promise
       .try(function() {
-        if (job.isCreated()) {
+        if (job.isCreated() || job.isRunning()) {
           return pulsarApi.killJob(job);
         }
       })
