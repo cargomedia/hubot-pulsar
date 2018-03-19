@@ -1,3 +1,8 @@
+UNMAINTAINED
+============
+This project is not maintained anymore.
+If you want to take over contact us at tech@cargomedia.ch.
+
 hubot-pulsar [![Build Status](https://img.shields.io/travis/cargomedia/hubot-pulsar/master.svg)](https://travis-ci.org/cargomedia/hubot-pulsar) [![npm](https://img.shields.io/npm/v/hubot-pulsar.svg)](https://www.npmjs.com/package/hubot-pulsar)
 ============
 
